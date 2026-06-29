@@ -559,7 +559,11 @@ window.toggleDoc=async function(siteId,type,idx){
   const key=type==='docs'?'contractDocs':'claimDocs';
   const data={...(s[key]||{})};
   data[idx]=!data[idx];
-  await updateDoc(doc(db,'sites',siteId),{[key]:data});
+  // 화면 먼저 업데이트
+  s[key]=data;
+  renderDocTab(type);
+  // Firebase 저장
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:data});}catch(e){showToast('⚠️ 저장 실패 — Firebase 규칙을 확인하세요');}
 }
 
 window.toggleExtraDoc=async function(siteId,type,idx){
@@ -567,7 +571,11 @@ window.toggleExtraDoc=async function(siteId,type,idx){
   const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
   const list=[...(s[key]||[])];
   list[idx]={...list[idx],checked:!list[idx].checked};
-  await updateDoc(doc(db,'sites',siteId),{[key]:list});
+  // 화면 먼저 업데이트
+  s[key]=list;
+  renderDocTab(type);
+  // Firebase 저장
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});}catch(e){showToast('⚠️ 저장 실패 — Firebase 규칙을 확인하세요');}
 }
 
 window.addExtraDoc=async function(siteId,type){
