@@ -181,6 +181,26 @@ textarea{resize:vertical;min-height:60px}
       <div id="site-list" style="margin-top:10px"><div class="loading">로딩 중...</div></div>
     </div>
   </div>
+  <!-- 현장 탭 일지 작성 섹션 -->
+  <div class="card" id="site-log-quick">
+    <div class="card-title">📋 일지 빠른 입력</div>
+    <div class="field"><label>날짜</label><input type="date" id="ql-date"></div>
+    <div class="field"><label>현장/건명 *</label>
+      <div class="ac-wrap"><input type="text" id="ql-site" placeholder="현장명 자동완성" oninput="acSearch(this.value,'ql-site-ac','ql-site','site')" autocomplete="off"><div class="ac-list" id="ql-site-ac"></div></div>
+    </div>
+    <div class="field"><label>작업자 *</label><input type="text" id="ql-workers" placeholder="홍길동, 김철수"></div>
+    <div class="row2">
+      <div class="field"><label>시작</label><input type="time" id="ql-start" value="08:00"></div>
+      <div class="field"><label>종료</label><input type="time" id="ql-end" value="17:00"></div>
+    </div>
+    <div class="field"><label>작업내용 *</label><textarea id="ql-work" placeholder="오늘 작업 내용"></textarea></div>
+    <div class="field"><label>특이사항</label><input type="text" id="ql-note"></div>
+    <button class="btn btn-primary" onclick="submitQuickLog()">➕ 일지 등록</button>
+    <div class="divider"></div>
+    <div class="section-label">최근 일지</div>
+    <div id="site-recent-logs"><div class="loading">로딩 중...</div></div>
+  </div>
+
   <div id="site-detail-view" style="display:none">
     <button class="back-btn" onclick="showView('site-list-view','site-detail-view');renderSites()">← 현장 목록</button>
     <div id="site-detail-tabs" style="display:flex;gap:4px;margin-bottom:12px">
@@ -228,21 +248,7 @@ textarea{resize:vertical;min-height:60px}
         <option value="차량유지비">차량유지비</option><option value="기타">기타</option>
       </select>
     </div>
-    <div class="field">
-      <label>품목 목록 <button class="btn btn-sm" style="background:#2980b9;color:#fff;font-size:11px;margin-left:8px" onclick="addOfficeItem()">+ 품목 추가</button></label>
-      <div style="display:grid;grid-template-columns:1fr 80px 32px;gap:4px;margin-bottom:4px;padding:0 4px">
-        <div style="font-size:11px;color:#888;font-weight:600">날짜+품목명</div>
-        <div style="font-size:11px;color:#888;font-weight:600">금액</div>
-        <div></div>
-      </div>
-      <div id="office-items">
-        <div class="item-row-grid">
-          <input type="text" placeholder="예) 06.11 5T투명각면" style="font-size:12px">
-          <input type="number" placeholder="금액" style="font-size:12px">
-          <button onclick="this.closest('.item-row-grid').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:6px;color:#c0392b;font-size:13px">×</button>
-        </div>
-      </div>
-    </div>
+
     <div class="field">
       <label>사진/PDF 첨부</label>
       <div class="upload-area" onclick="document.getElementById('o-file').click()">
@@ -331,14 +337,14 @@ textarea{resize:vertical;min-height:60px}
     </div>
   </div>
 
-  <!-- 서류 확인 -->
+  <!-- 서류 확인 + 품목 입력 -->
   <div id="field-tab-docs" style="display:none">
     <div class="card">
-      <div class="card-title">📄 현장명 입력 필요한 서류</div>
+      <div class="card-title">📄 사무실에서 올린 서류 <span id="unconfirmed-badge" style="background:#e74c3c;color:#fff;border-radius:20px;padding:2px 8px;font-size:11px;margin-left:6px"></span></div>
       <div id="field-confirm-list"><div class="loading">로딩 중...</div></div>
     </div>
     <div class="card">
-      <div class="card-title">✅ 확인 완료된 서류</div>
+      <div class="card-title">✅ 처리 완료</div>
       <div id="field-confirmed-list"><div class="loading">로딩 중...</div></div>
     </div>
   </div>
@@ -346,8 +352,8 @@ textarea{resize:vertical;min-height:60px}
   <!-- 현장팀 사진 업로드 -->
   <div id="field-tab-upload" style="display:none">
     <div class="card">
-      <div class="card-title">📸 서류/사진 업로드</div>
-      <div style="background:#e9f7ef;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#1e8449;font-weight:600">현장팀이 받은 거래명세서/세금계산서를 사무실로 전달</div>
+      <div class="card-title">📸 현장팀 서류/사진 업로드</div>
+      <div style="background:#e9f7ef;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#1e8449;font-weight:600">현장에서 받은 서류를 사무실로 전달하거나 현장 사진을 올려주세요</div>
       <div class="field"><label>거래처 *</label>
         <div class="ac-wrap"><input type="text" id="f-vendor" placeholder="자동완성" oninput="acSearch(this.value,'f-vendor-ac','f-vendor','client')" autocomplete="off"><div class="ac-list" id="f-vendor-ac"></div></div>
       </div>
@@ -440,7 +446,7 @@ const CLAIM_DOCS=['착공계','현장대리인계','현장대리인 재직증명
 // 실시간 구독
 onSnapshot(collection(db,'clients'),snap=>{clients=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));renderClients();renderDash();});
 onSnapshot(collection(db,'sites'),snap=>{sites=snap.docs.map(d=>({id:d.id,...d.data()}));renderSites();renderDash();});
-onSnapshot(collection(db,'logs'),snap=>{logs=snap.docs.map(d=>({id:d.id,...d.data()}));renderRecentLogs();renderDash();});
+onSnapshot(collection(db,'logs'),snap=>{logs=snap.docs.map(d=>({id:d.id,...d.data()}));renderRecentLogs();renderSiteRecentLogs();renderDash();});
 onSnapshot(collection(db,'pays'),snap=>{pays=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderPays();renderDash();});
 onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderOfficeDocs();renderFieldDocs();renderDash();});
 
@@ -530,14 +536,7 @@ window.submitOfficeDoc=async function(){
   const vendor=document.getElementById('o-vendor').value.trim();
   const amount=parseInt(document.getElementById('o-amount').value)||0;
   if(!vendor||!amount)return showToast('⚠️ 거래처와 금액을 입력하세요');
-  // 품목 수집
   const items=[];
-  document.querySelectorAll('#office-items .item-row-grid').forEach(row=>{
-    const inputs=row.querySelectorAll('input');
-    const name=(inputs[0].value||'').trim();
-    const amt=parseInt(inputs[1].value)||0;
-    if(name)items.push({name,amt,site:'',confirmed:false});
-  });
   // 파일 업로드
   let fileUrl='',fileType='',fileName='';
   const fileInput=document.getElementById('o-file');
@@ -549,10 +548,10 @@ window.submitOfficeDoc=async function(){
       document.getElementById('o-upload-progress').style.display='none';
     }catch(e){showToast('⚠️ 파일 업로드 실패');}
   }
-  await addDoc(collection(db,'docs'),{vendor,amount,cat:document.getElementById('o-cat').value,doctype:document.getElementById('o-doctype').value,memo:document.getElementById('o-memo').value.trim(),items,fileUrl,fileType,fileName,from:'office',allConfirmed:items.length===0,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  await addDoc(collection(db,'docs'),{vendor,amount,cat:document.getElementById('o-cat').value,doctype:document.getElementById('o-doctype').value,memo:document.getElementById('o-memo').value.trim(),items,fileUrl,fileType,fileName,from:'office',allConfirmed:false,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
   ['o-vendor','o-amount','o-memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('o-file-preview').innerHTML='';
-  document.getElementById('office-items').innerHTML=`<div class="item-row-grid"><input type="text" placeholder="예) 06.11 5T투명각면" style="font-size:12px"><input type="number" placeholder="금액" style="font-size:12px"><button onclick="this.closest('.item-row-grid').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:6px;color:#c0392b;font-size:13px">×</button></div>`;
+
   showToast('✅ 서류 등록 완료! 현장팀 확인 필요');
 }
 
@@ -570,9 +569,19 @@ window.submitFieldDoc=async function(){
     }catch(e){showToast('⚠️ 파일 업로드 실패');}
   }
   await addDoc(collection(db,'docs'),{vendor,amount:parseInt(document.getElementById('f-amount').value)||0,cat:'',doctype:document.getElementById('f-doctype').value,memo:document.getElementById('f-memo').value.trim(),items:[{name:'현장팀 전달 서류',amt:0,site:document.getElementById('f-site').value.trim(),confirmed:!!document.getElementById('f-site').value.trim()}],fileUrl,fileType,fileName,from:'field',allConfirmed:!!document.getElementById('f-site').value.trim(),createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  // 결제 탭에도 등록 (바로 승인 가능)
+  await addDoc(collection(db,'pays'),{
+    vendor, amount:parseInt(document.getElementById('f-amount').value)||0,
+    siteKey:document.getElementById('f-site').value.trim(),
+    cat:'', memo:document.getElementById('f-memo').value.trim(),
+    isPrepay:false, from:'field',
+    steps:['송금'], curStep:0, stepDates:{},
+    fileUrl, fileType, fileName, items:[],
+    createdAt:Date.now(), date:new Date().toLocaleDateString('ko-KR')
+  });
   ['f-vendor','f-amount','f-site','f-memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-file-preview').innerHTML='';
-  showToast('✅ 사무실로 전달 완료!');
+  showToast('✅ 전달 완료! 결제탭에서 승인하세요');
 }
 
 // 선송금 등록
@@ -630,45 +639,7 @@ function renderOfficeDocs(){
   </div>`).join('');
 }
 
-function renderFieldDocs(){
-  const unconfirmed=docs.filter(d=>!d.allConfirmed&&d.items&&d.items.length>0);
-  const confirmed=docs.filter(d=>d.allConfirmed&&d.items&&d.items.length>0);
-  const ucEl=document.getElementById('field-confirm-list');
-  const cEl=document.getElementById('field-confirmed-list');
-  if(!ucEl||!cEl)return;
-  if(!unconfirmed.length){ucEl.innerHTML='<div class="empty">✅ 모두 확인 완료!</div>';}
-  else ucEl.innerHTML=unconfirmed.map(d=>`<div class="confirm-card">
-    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
-    </div>
-    ${d.fileUrl?`${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-bottom:10px;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px;margin-bottom:10px">📄 ${d.fileName||'파일 보기'}</a>`}`:''}
-    <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:6px">품목별 현장명 입력:</div>
-    ${(d.items||[]).map((item,i)=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5;align-items:center">
-      <div style="font-size:13px">${item.name} ${item.amt?`<span style="color:#888;font-size:11px">(${(item.amt).toLocaleString()}원)</span>`:''}</div>
-      <div>
-        ${item.confirmed?`<span style="color:#27ae60;font-weight:700;font-size:13px">✅ ${item.site}</span>`:`
-        <div class="ac-wrap">
-          <input type="text" value="${item.site||''}" placeholder="현장명 입력 후 엔터" 
-            style="font-size:12px;background:#fff9e6;border-color:#f0d060"
-            oninput="acSearch(this.value,'fc-ac-${d.id}-${i}','fc-input-${d.id}-${i}','site')"
-            id="fc-input-${d.id}-${i}"
-            onkeydown="if(event.key==='Enter'){confirmDocItem('${d.id}',${i},this.value)}"
-            autocomplete="off">
-          <div class="ac-list" id="fc-ac-${d.id}-${i}"></div>
-        </div>
-        <button class="btn btn-sm btn-field" style="margin-top:4px;width:100%;justify-content:center" onclick="confirmDocItem('${d.id}',${i},document.getElementById('fc-input-${d.id}-${i}').value)">저장</button>`}
-      </div>
-    </div>`).join('')}
-  </div>`).join('');
-  if(!confirmed.length){cEl.innerHTML='<div class="empty">없음</div>';}
-  else cEl.innerHTML=confirmed.map(d=>`<div class="confirm-card confirmed" style="opacity:.8">
-    <div style="display:flex;justify-content:space-between">
-      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
-      <span class="badge b-ok">확인완료</span>
-    </div>
-    ${(d.items||[]).map(item=>`<div style="font-size:12px;color:#555;margin-top:4px">• ${item.name} → <b>${item.site}</b></div>`).join('')}
-  </div>`).join('');
-}
+// renderFieldDocs moved above
 
 // 최근 일지
 function renderRecentLogs(){
@@ -911,7 +882,10 @@ window.openStepModal=function(id){
   stepsHtml+='</div>';
   document.getElementById('step-modal-content').innerHTML=`
     <div class="modal-title">${p.isPrepay?'⚡ 선송금':'💰 결제'}<button class="modal-close" onclick="closeModal('step-modal')">×</button></div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:2px">${p.vendor}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:700">${p.vendor}</div>
+      ${p.from==='office'?'<span style="font-size:11px;background:#d6eaf8;color:#1a5276;padding:2px 8px;border-radius:10px;font-weight:600">사무실 등록</span>':p.from==='field'?'<span style="font-size:11px;background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-weight:600">현장팀 등록</span>':''}
+    </div>
     <div style="font-size:13px;color:#888;margin-bottom:12px">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.cat||''}</div>
     ${accountInfo}
     ${p.fileUrl?`<div style="margin-bottom:12px">${p.fileType&&p.fileType.startsWith('image/')?`<img src="${p.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:`<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${p.fileName||'파일 보기'}</a>`}</div>`:''}
@@ -944,7 +918,13 @@ function renderPays(){
     const steps=p.steps||[];const cur=p.curStep||0;const isDone=cur>=steps.length;
     return`<div class="pay-card ${isDone?'done-card':p.isPrepay?'urgent':''}" onclick="openStepModal('${p.id}')">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-        <div><div style="font-size:13px;font-weight:700">${p.isPrepay?'⚡ ':''}${p.vendor}</div><div style="font-size:12px;color:#888;margin-top:1px">${p.siteKey||'-'} · ${p.cat||''}</div></div>
+        <div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="font-size:13px;font-weight:700">${p.isPrepay?'⚡ ':''}${p.vendor}</div>
+            ${p.from==='office'?'<span style="font-size:10px;background:#d6eaf8;color:#1a5276;padding:1px 6px;border-radius:10px;font-weight:600">사무실</span>':p.from==='field'?'<span style="font-size:10px;background:#d5f5e3;color:#1e8449;padding:1px 6px;border-radius:10px;font-weight:600">현장팀</span>':''}
+          </div>
+          <div style="font-size:12px;color:#888;margin-top:1px">${p.siteKey||'-'} · ${p.cat||''}</div>
+        </div>
         <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${isDone?'#27ae60':p.isPrepay?'#e74c3c':'#1a1a2e'}">${(p.amount||0).toLocaleString()}원</div><span class="badge ${isDone?'b-ok':p.isPrepay?'b-red':'b-blue'}" style="margin-top:2px">${isDone?'완료':steps[cur]||''}</span></div>
       </div>
       <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap">${steps.map((s,i)=>`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${i<cur?'#d5f5e3':i===cur?'#1a1a2e':'#f0f0f0'};color:${i<cur?'#1e8449':i===cur?'#fff':'#bbb'};font-weight:${i===cur?'700':'400'}">${ICONS[s]||''} ${s}</span>${i<steps.length-1?'<span style="color:#ddd;font-size:10px">›</span>':''}`).join('')}</div>
@@ -980,11 +960,144 @@ function renderDash(){
   }
   const dUnconfirmed=document.getElementById('dash-unconfirmed');
   if(dUnconfirmed){
-    dUnconfirmed.innerHTML=unconfirmedDocs.length?unconfirmedDocs.map(d=>`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${d.vendor}</div><div style="font-size:12px;color:#999">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div><span class="badge b-wait">현장명 대기</span></div>`).join(''):'<div class="empty">✅ 모두 확인 완료</div>';
+    const officePending=pays.filter(p=>p.from==='office'&&(p.curStep||0)<(p.steps||[]).length);
+    const fieldPending=pays.filter(p=>p.from==='field'&&(p.curStep||0)<(p.steps||[]).length);
+    let html='';
+    if(officePending.length) html+=`<div style="font-size:11px;font-weight:700;color:#1a5276;margin-bottom:6px">💼 사무실 등록 — 현장팀 확인 필요 (${officePending.length}건)</div>`+officePending.map(p=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.vendor}</div><div style="font-size:12px;color:#999">${(p.amount||0).toLocaleString()}원 · ${p.date||''}</div></div><span class="badge b-blue">현장팀 확인</span></div>`).join('');
+    if(fieldPending.length) html+=`<div style="font-size:11px;font-weight:700;color:#1e8449;margin:8px 0 6px">👷 현장팀 등록 — 승인 대기 (${fieldPending.length}건)</div>`+fieldPending.map(p=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.vendor}</div><div style="font-size:12px;color:#999">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.date||''}</div></div><span class="badge b-ok">승인 대기</span></div>`).join('');
+    dUnconfirmed.innerHTML=html||'<div class="empty">✅ 모두 처리 완료</div>';
   }
 }
 
+
+// 현장탭 빠른 일지 입력
+window.submitQuickLog = async function() {
+  const site = document.getElementById('ql-site').value.trim();
+  const workers = document.getElementById('ql-workers').value.trim();
+  const work = document.getElementById('ql-work').value.trim();
+  if(!site||!workers||!work) return showToast('⚠️ 현장, 작업자, 작업내용 필수');
+  const matched = sites.find(s=>(s.client+' - '+s.contract)===site||s.contract===site);
+  await addDoc(collection(db,'logs'),{siteId:matched?matched.id:'',siteName:site,date:document.getElementById('ql-date').value,workers,startTime:document.getElementById('ql-start').value,endTime:document.getElementById('ql-end').value,work,note:document.getElementById('ql-note').value.trim(),createdAt:Date.now()});
+  document.getElementById('ql-workers').value='';
+  document.getElementById('ql-work').value='';
+  document.getElementById('ql-note').value='';
+  showToast('✅ 일지 등록 완료!');
+  renderSiteRecentLogs();
+}
+
+function renderSiteRecentLogs() {
+  const el = document.getElementById('site-recent-logs'); if(!el) return;
+  const recent = [...logs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,8);
+  if(!recent.length){el.innerHTML='<div class="empty">일지 없음</div>';return;}
+  el.innerHTML = recent.map(l=>`<div style="padding:9px 0;border-bottom:1px solid #f0f0f0">
+    <div style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${l.siteName||''}</div>
+    <div style="font-size:13px;font-weight:600;margin-top:1px">👷 ${l.workers||''}</div>
+    <div style="font-size:12px;color:#555;margin-top:1px">${l.work||''}</div>
+  </div>`).join('');
+}
+
+// 현장팀 서류 확인 + 품목 입력
+function renderFieldDocs() {
+  const unconfirmed = docs.filter(d=>!d.allConfirmed);
+  const confirmed = docs.filter(d=>d.allConfirmed);
+  
+  // 뱃지 업데이트
+  const badge = document.getElementById('unconfirmed-badge');
+  if(badge) badge.textContent = unconfirmed.length > 0 ? unconfirmed.length+'건' : '';
+  
+  const ucEl = document.getElementById('field-confirm-list');
+  const cEl = document.getElementById('field-confirmed-list');
+  if(!ucEl||!cEl) return;
+  
+  if(!unconfirmed.length){ucEl.innerHTML='<div class="empty">✅ 모두 처리 완료!</div>';}
+  else ucEl.innerHTML = unconfirmed.map(d=>`<div class="confirm-card" id="doc-card-${d.id}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div>
+        <div style="font-size:14px;font-weight:700">${d.vendor}</div>
+        <div style="font-size:12px;color:#888">${d.doctype||''} · <b>${(d.amount||0).toLocaleString()}원</b> · ${d.date||''}</div>
+        ${d.from==='field'?'<span class="badge b-ok" style="margin-top:4px;font-size:10px">현장팀 전달</span>':'<span class="badge b-blue" style="margin-top:4px;font-size:10px">사무실 등록</span>'}
+      </div>
+      <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
+    </div>
+    ${d.fileUrl?`<div style="margin-bottom:10px">${d.fileType&&d.fileType.startsWith('image/')?
+      `<img src="${d.fileUrl}" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:
+      `<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${d.fileName||'파일 보기'} — 클릭해서 열기</a>`
+    }</div>`:''}
+    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px">📋 품목 입력 (날짜, 품목명, 금액, 현장명):</div>
+    <div id="items-container-${d.id}">
+      ${(d.items||[]).map((item,i)=>`<div style="background:${item.confirmed?'#f0fff4':'#fffdf0'};border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid ${item.confirmed?'#a9dfbf':'#f0d060'}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:13px;font-weight:600">${item.name}</div>
+          ${item.confirmed?`<span style="color:#27ae60;font-size:12px;font-weight:700">✅ ${item.site}</span>`:''}
+        </div>
+        ${item.amt?`<div style="font-size:12px;color:#888">${item.amt.toLocaleString()}원</div>`:''}
+        ${!item.confirmed?`<div class="ac-wrap" style="margin-top:6px">
+          <input type="text" placeholder="현장명 입력 후 저장 버튼" 
+            style="font-size:12px;background:#fff9e6;border-color:#f0d060"
+            id="fc-input-${d.id}-${i}"
+            oninput="acSearch(this.value,'fc-ac-${d.id}-${i}','fc-input-${d.id}-${i}','site')"
+            autocomplete="off">
+          <div class="ac-list" id="fc-ac-${d.id}-${i}"></div>
+        </div>
+        <button class="btn btn-sm btn-field" style="margin-top:6px;width:100%;justify-content:center" 
+          onclick="confirmDocItem('${d.id}',${i},document.getElementById('fc-input-${d.id}-${i}').value)">✅ 저장</button>`:''}
+      </div>`).join('')}
+    </div>
+    <div style="border-top:1px solid #f0f0f0;padding-top:10px;margin-top:4px">
+      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">+ 새 품목 추가:</div>
+      <div style="display:grid;grid-template-columns:1fr 70px;gap:6px;margin-bottom:6px">
+        <input type="text" id="new-item-name-${d.id}" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
+        <input type="number" id="new-item-amt-${d.id}" placeholder="금액" style="font-size:12px">
+      </div>
+      <div class="ac-wrap" style="margin-bottom:6px">
+        <input type="text" id="new-item-site-${d.id}" placeholder="현장명" 
+          style="font-size:12px;background:#fff9e6;border-color:#f0d060"
+          oninput="acSearch(this.value,'new-item-ac-${d.id}','new-item-site-${d.id}','site')"
+          autocomplete="off">
+        <div class="ac-list" id="new-item-ac-${d.id}"></div>
+      </div>
+      <button class="btn btn-sm btn-field" style="width:100%;justify-content:center" onclick="addDocItem('${d.id}')">➕ 품목 추가</button>
+    </div>
+    ${d.items&&d.items.length>0&&d.items.every(i=>i.confirmed)?`<button class="btn btn-field" style="margin-top:8px" onclick="markAllConfirmed('${d.id}')">✅ 모두 확인 완료 처리</button>`:''}
+  </div>`).join('');
+
+  if(!confirmed.length){cEl.innerHTML='<div class="empty">없음</div>';}
+  else cEl.innerHTML = confirmed.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
+      <span class="badge b-ok">완료</span>
+    </div>
+    ${(d.items||[]).map(item=>`<div style="font-size:12px;color:#555;margin-top:3px">• ${item.name} ${item.amt?`(${item.amt.toLocaleString()}원)`:''}  → <b style="color:#27ae60">${item.site}</b></div>`).join('')}
+  </div>`).join('');
+}
+
+// 품목 추가
+window.addDocItem = async function(docId) {
+  const name = document.getElementById('new-item-name-'+docId).value.trim();
+  const amt = parseInt(document.getElementById('new-item-amt-'+docId).value)||0;
+  const site = document.getElementById('new-item-site-'+docId).value.trim();
+  if(!name) return showToast('⚠️ 품목명을 입력하세요');
+  const d = docs.find(d=>d.id===docId); if(!d) return;
+  const items = [...(d.items||[]), {name, amt, site, confirmed:!!site}];
+  const allConfirmed = items.every(i=>i.confirmed);
+  try {
+    await updateDoc(doc(db,'docs',docId), {items, allConfirmed});
+    document.getElementById('new-item-name-'+docId).value='';
+    document.getElementById('new-item-amt-'+docId).value='';
+    document.getElementById('new-item-site-'+docId).value='';
+    showToast('✅ 품목 추가!');
+  } catch(e) { showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
+}
+
+window.markAllConfirmed = async function(docId) {
+  try {
+    await updateDoc(doc(db,'docs',docId), {allConfirmed:true});
+    showToast('✅ 확인 완료!');
+  } catch(e) { showToast('⚠️ 저장 실패'); }
+}
+
 document.getElementById('w-date').value=new Date().toISOString().slice(0,10);
+document.getElementById('ql-date').value=new Date().toISOString().slice(0,10);
 </script>
 </body>
 </html>
