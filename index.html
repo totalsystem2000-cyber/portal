@@ -309,33 +309,12 @@ textarea{resize:vertical;min-height:60px}
 
   <!-- 현장팀 서브탭 -->
   <div style="display:flex;gap:6px;margin-bottom:12px">
-    <button class="btn btn-sm" id="ftab-log" onclick="showFieldTab('log')" style="background:#27ae60;color:#fff;flex:1">📋 일지 입력</button>
+
     <button class="btn btn-sm btn-gray" id="ftab-docs" onclick="showFieldTab('docs')" style="flex:1">📄 서류 확인</button>
     <button class="btn btn-sm btn-gray" id="ftab-upload" onclick="showFieldTab('upload')" style="flex:1">📸 사진 업로드</button>
   </div>
 
-  <!-- 일지 입력 -->
-  <div id="field-tab-log">
-    <div class="card">
-      <div class="card-title">📋 현장 일지 입력</div>
-      <div class="field"><label>날짜 *</label><input type="date" id="w-date"></div>
-      <div class="field"><label>현장/건명 *</label>
-        <div class="ac-wrap"><input type="text" id="w-site" placeholder="현장명 자동완성" oninput="acSearch(this.value,'w-site-ac','w-site','site')" autocomplete="off"><div class="ac-list" id="w-site-ac"></div></div>
-      </div>
-      <div class="field"><label>작업자 *</label><input type="text" id="w-workers" placeholder="예) 홍길동, 김철수"></div>
-      <div class="row2">
-        <div class="field"><label>시작시간</label><input type="time" id="w-start" value="08:00"></div>
-        <div class="field"><label>종료시간</label><input type="time" id="w-end" value="17:00"></div>
-      </div>
-      <div class="field"><label>작업내용 *</label><textarea id="w-work" placeholder="오늘 작업 내용"></textarea></div>
-      <div class="field"><label>특이사항</label><input type="text" id="w-note"></div>
-      <button class="btn btn-field" onclick="submitLog()">✅ 일지 제출</button>
-    </div>
-    <div class="card">
-      <div class="card-title">📋 최근 일지</div>
-      <div id="recent-logs"><div class="loading">로딩 중...</div></div>
-    </div>
-  </div>
+
 
   <!-- 서류 확인 + 품목 입력 -->
   <div id="field-tab-docs" style="display:none">
@@ -416,6 +395,23 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
+<!-- 일지 수정 모달 -->
+<div id="edit-log-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">✏️ 일지 수정<button class="modal-close" onclick="closeModal('edit-log-modal')">×</button></div>
+    <input type="hidden" id="edit-log-id">
+    <div class="field"><label>날짜</label><input type="date" id="edit-log-date"></div>
+    <div class="field"><label>작업자 *</label><input type="text" id="edit-log-workers" placeholder="홍길동, 김철수"></div>
+    <div class="row2">
+      <div class="field"><label>시작</label><input type="time" id="edit-log-start"></div>
+      <div class="field"><label>종료</label><input type="time" id="edit-log-end"></div>
+    </div>
+    <div class="field"><label>작업내용 *</label><textarea id="edit-log-work"></textarea></div>
+    <div class="field"><label>특이사항</label><input type="text" id="edit-log-note"></div>
+    <button class="btn btn-primary" onclick="saveEditLog()">💾 저장</button>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -462,11 +458,10 @@ window.showTab=function(id,el){
 }
 window.showView=function(s,h){document.getElementById(s).style.display='';document.getElementById(h).style.display='none';}
 window.showFieldTab=function(tab){
-  ['log','docs','upload'].forEach(t=>{
+  ['docs','upload'].forEach(t=>{
     document.getElementById('field-tab-'+t).style.display=tab===t?'block':'none';
     const btn=document.getElementById('ftab-'+t);
-    btn.style.background=tab===t?'#27ae60':'#f0f0f0';
-    btn.style.color=tab===t?'#fff':'#555';
+    if(btn){btn.style.background=tab===t?'#27ae60':'#f0f0f0';btn.style.color=tab===t?'#fff':'#555';}
   });
   if(tab==='docs')renderFieldDocs();
 }
@@ -844,7 +839,18 @@ function renderSiteLogTab(){
     <button class="btn btn-primary" onclick="addLog()">➕ 등록</button>
     <div class="divider"></div>
     <div class="section-label">일지 ${sl.length}건</div>
-    ${sl.length?sl.map(l=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0"><div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''}</span><button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button></div><div style="font-size:13px;font-weight:600;margin-top:2px">👷 ${l.workers||''}</div><div style="font-size:13px;color:#444;margin-top:2px">${l.work||''}</div>${l.note?`<div style="font-size:12px;color:#e67e22;margin-top:2px">⚠️ ${l.note}</div>`:''}</div>`).join(''):'<div class="empty">일지 없음</div>'}`;
+    ${sl.length?sl.map(l=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''}</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm btn-gray" style="padding:3px 8px;font-size:11px" onclick="openEditLog('${l.id}')">✏️ 수정</button>
+          <button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-top:2px">👷 ${l.workers||''}</div>
+      <div style="font-size:13px;color:#444;margin-top:2px">${l.work||''}</div>
+      ${l.note?`<div style="font-size:12px;color:#e67e22;margin-top:2px">⚠️ ${l.note}</div>`:''}
+    </div>`).join(''):'<div class="empty">일지 없음</div>'}`;
 }
 window.addLog=async function(){
   const workers=document.getElementById('l-workers').value.trim();
@@ -969,6 +975,38 @@ function renderDash(){
   }
 }
 
+
+
+window.openEditLog = function(id) {
+  const l = logs.find(l=>l.id===id); if(!l) return;
+  document.getElementById('edit-log-id').value = id;
+  document.getElementById('edit-log-date').value = l.date||'';
+  document.getElementById('edit-log-workers').value = l.workers||'';
+  document.getElementById('edit-log-start').value = l.startTime||'08:00';
+  document.getElementById('edit-log-end').value = l.endTime||'17:00';
+  document.getElementById('edit-log-work').value = l.work||'';
+  document.getElementById('edit-log-note').value = l.note||'';
+  openModal('edit-log-modal');
+}
+
+window.saveEditLog = async function() {
+  const id = document.getElementById('edit-log-id').value;
+  const workers = document.getElementById('edit-log-workers').value.trim();
+  const work = document.getElementById('edit-log-work').value.trim();
+  if(!workers||!work) return showToast('⚠️ 작업자와 작업내용 필수');
+  try {
+    await updateDoc(doc(db,'logs',id), {
+      date: document.getElementById('edit-log-date').value,
+      workers,
+      startTime: document.getElementById('edit-log-start').value,
+      endTime: document.getElementById('edit-log-end').value,
+      work,
+      note: document.getElementById('edit-log-note').value.trim()
+    });
+    showToast('✅ 일지 수정 완료');
+    closeModal('edit-log-modal');
+  } catch(e) { showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
+}
 
 // 현장탭 빠른 일지 입력
 window.submitQuickLog = async function() {
