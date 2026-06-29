@@ -9,10 +9,11 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f0f2f5;color:#1a1a1a;font-size:14px}
 .header{background:#1a1a2e;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 .header h1{font-size:16px;font-weight:700}
-.worker-btn{background:#e74c3c;border:none;color:#fff;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:600}
-.tabs{display:flex;background:#fff;border-bottom:2px solid #e5e5e5;position:sticky;top:49px;z-index:99;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.tab{flex:1;padding:11px 2px;font-size:12px;border:none;background:none;color:#999;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;font-weight:500}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e5e5e5;position:sticky;top:49px;z-index:99;overflow-x:auto}
+.tab{flex:1;min-width:60px;padding:11px 4px;font-size:11px;border:none;background:none;color:#999;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;font-weight:500;white-space:nowrap}
 .tab.on{color:#1a1a2e;border-bottom-color:#1a1a2e;font-weight:700}
+.tab.office{color:#2980b9}.tab.office.on{border-bottom-color:#2980b9;color:#2980b9}
+.tab.field{color:#27ae60}.tab.field.on{border-bottom-color:#27ae60;color:#27ae60}
 .page{display:none;padding:12px}.page.on{display:block}
 .card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .card-title{font-size:13px;font-weight:700;margin-bottom:12px;color:#1a1a2e;display:flex;align-items:center;gap:6px}
@@ -23,6 +24,8 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a2e;backgr
 textarea{resize:vertical;min-height:60px}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600}
 .btn-primary{background:#1a1a2e;color:#fff;width:100%;justify-content:center;margin-top:6px}
+.btn-office{background:#2980b9;color:#fff;width:100%;justify-content:center;margin-top:6px}
+.btn-field{background:#27ae60;color:#fff;width:100%;justify-content:center;margin-top:6px}
 .btn-red{background:#e74c3c;color:#fff;width:100%;justify-content:center;margin-top:6px}
 .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
 .btn-gray{background:#f0f0f0;color:#555}
@@ -66,40 +69,42 @@ textarea{resize:vertical;min-height:60px}
 .modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:#999;line-height:1}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}
 .toast.show{opacity:1}
-/* 결제 카드 */
 .pay-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border-left:4px solid #2980b9;cursor:pointer}
 .pay-card.urgent{border-left-color:#e74c3c}
 .pay-card.done-card{border-left-color:#27ae60;opacity:.8}
-/* 체크박스 스텝 */
-.step-checks{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.step-check{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#bbb}
-.step-check.done{background:#d5f5e3;color:#1e8449;border-color:#a9dfbf}
-.step-check.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
-/* 서류 체크리스트 */
-.doc-list{display:grid;grid-template-columns:1fr;gap:4px}
-.doc-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f8f8f8;font-size:13px;cursor:pointer;border:1px solid transparent}
+.pay-card.office-card{border-left-color:#2980b9}
+.pay-card.field-card{border-left-color:#27ae60}
+.upload-area{border:2px dashed #ddd;border-radius:8px;padding:16px;text-align:center;cursor:pointer;color:#bbb;font-size:13px;transition:all .15s;margin-bottom:6px}
+.upload-area:hover{border-color:#1a1a2e;color:#1a1a2e}
+.doc-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:#f8f8f8;font-size:13px;cursor:pointer;border:1px solid transparent;margin-bottom:4px}
 .doc-item.checked{background:#e8f5e9;border-color:#a9dfbf}
 .doc-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;flex-shrink:0;accent-color:#27ae60}
-.doc-item .doc-label{flex:1}
-.doc-item .doc-date{font-size:11px;color:#999;flex-shrink:0}
-.doc-section-title{font-size:12px;font-weight:700;color:#1a1a2e;padding:8px 0 4px;border-bottom:1px solid #eee;margin-bottom:6px}
-.upload-area{border:2px dashed #ddd;border-radius:8px;padding:20px;text-align:center;cursor:pointer;color:#bbb;font-size:13px;transition:all .15s}
-.upload-area:hover{border-color:#1a1a2e;color:#1a1a2e;background:#f8f9fe}
+/* 사무실/현장팀 구분 배너 */
+.team-banner{padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.banner-office{background:#e8f4fd;color:#1a5276;border:1px solid #aed6f1}
+.banner-field{background:#e9f7ef;color:#1e8449;border:1px solid #a9dfbf}
+/* 품목 행 */
+.item-row-grid{display:grid;grid-template-columns:1fr 80px 32px;gap:6px;align-items:center;margin-bottom:6px}
+.item-row-grid.with-site{grid-template-columns:1fr 75px 1fr 32px}
+/* 현장팀 서류 확인 카드 */
+.confirm-card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);border:1.5px solid #f0d060}
+.confirm-card.confirmed{border-color:#a9dfbf}
 </style>
 </head>
 <body>
 <div id="toast" class="toast"></div>
 
 <div class="header">
-  <h1>🏗️ 토탈시스템</h1>
-  <button class="worker-btn" onclick="openModal('worker-modal')">📋 일지 입력</button>
+  <h1>🏗️ 토탈시스템 업무 포털</h1>
 </div>
 
 <div class="tabs">
-  <button class="tab on" onclick="showTab('dash',this)">대시보드</button>
-  <button class="tab" onclick="showTab('clients',this)">거래처</button>
-  <button class="tab" onclick="showTab('sites',this)">현장</button>
-  <button class="tab" onclick="showTab('pay',this)">결제</button>
+  <button class="tab on" onclick="showTab('dash',this)">📊 대시보드</button>
+  <button class="tab" onclick="showTab('clients',this)">🏢 거래처</button>
+  <button class="tab" onclick="showTab('sites',this)">🏗️ 현장</button>
+  <button class="tab office" onclick="showTab('office',this)">💼 사무실</button>
+  <button class="tab field" onclick="showTab('field',this)">👷 현장팀</button>
+  <button class="tab" onclick="showTab('pay',this)">💰 결제</button>
 </div>
 
 <!-- 대시보드 -->
@@ -107,6 +112,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="stat-grid" id="dash-stats"></div>
   <div class="card"><div class="card-title">📊 현장별 지출</div><div id="dash-sites"><div class="loading">로딩 중...</div></div></div>
   <div class="card"><div class="card-title">🔴 결제 대기</div><div id="dash-pay"><div class="loading">로딩 중...</div></div></div>
+  <div class="card"><div class="card-title">⚠️ 현장명 미입력 서류</div><div id="dash-unconfirmed"><div class="loading">로딩 중...</div></div></div>
 </div>
 
 <!-- 거래처 -->
@@ -127,7 +133,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="divider"></div>
       <div class="section-label">💳 이체 정보</div>
       <div class="row2">
-        <div class="field"><label>은행명</label><input type="text" id="c-bank" placeholder="예) 국민은행"></div>
+        <div class="field"><label>은행명</label><input type="text" id="c-bank"></div>
         <div class="field"><label>예금주</label><input type="text" id="c-holder"></div>
       </div>
       <div class="field"><label>계좌번호</label><input type="text" id="c-account" placeholder="000-000-000000"></div>
@@ -190,103 +196,72 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
-<!-- 결제 -->
-<div id="pay" class="page">
-  <div class="stat-grid" id="pay-stats"></div>
-  <div style="display:flex;gap:8px;margin-bottom:10px">
-    <button class="btn btn-primary" style="margin-top:0;flex:1;font-size:12px" onclick="openModal('pay-modal')">➕ 일반 결제 등록</button>
-    <button class="btn btn-red" style="margin-top:0;flex:1;font-size:12px" onclick="openModal('prepay-modal')">⚡ 선송금 요청</button>
-  </div>
-  <div style="display:flex;gap:6px;margin-bottom:10px">
-    <select id="pay-filter" onchange="renderPays()" style="flex:1;font-size:12px">
-      <option value="all">전체</option>
-      <option value="진행">진행중</option>
-      <option value="완료">완료</option>
-    </select>
-  </div>
-  <div id="pay-list"><div class="loading">로딩 중...</div></div>
-</div>
-
-<!-- 직원 일지 모달 -->
-<div id="worker-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">📋 현장 일지 등록<button class="modal-close" onclick="closeModal('worker-modal')">×</button></div>
-    <div class="field"><label>날짜 *</label><input type="date" id="w-date"></div>
-    <div class="field"><label>현장/건명 *</label>
-      <div class="ac-wrap"><input type="text" id="w-site" placeholder="현장명 입력" oninput="acSearch(this.value,'w-site-ac','w-site','site')" autocomplete="off"><div class="ac-list" id="w-site-ac"></div></div>
-    </div>
-    <div class="field"><label>작업자 *</label><input type="text" id="w-workers" placeholder="홍길동, 김철수"></div>
-    <div class="row2">
-      <div class="field"><label>시작시간</label><input type="time" id="w-start" value="08:00"></div>
-      <div class="field"><label>종료시간</label><input type="time" id="w-end" value="17:00"></div>
-    </div>
-    <div class="field"><label>작업내용 *</label><textarea id="w-work" placeholder="오늘 작업 내용"></textarea></div>
-    <div class="field"><label>특이사항</label><input type="text" id="w-note"></div>
-    <button class="btn btn-primary" style="background:#27ae60" onclick="submitLog()">✅ 제출</button>
-  </div>
-</div>
-
-<!-- 일반 결제 모달 -->
-<div id="pay-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">💰 결제 등록<button class="modal-close" onclick="closeModal('pay-modal')">×</button></div>
+<!-- 사무실 탭 -->
+<div id="office" class="page">
+  <div class="team-banner banner-office">💼 사무실팀 — 서류 등록 및 결제 요청</div>
+  <div class="card">
+    <div class="card-title">📄 서류 등록 (거래명세서 / 세금계산서)</div>
     <div class="field"><label>거래처 *</label>
-      <div class="ac-wrap"><input type="text" id="p-vendor" placeholder="자동완성" oninput="acSearch(this.value,'p-vendor-ac','p-vendor','client')" autocomplete="off"><div class="ac-list" id="p-vendor-ac"></div></div>
+      <div class="ac-wrap"><input type="text" id="o-vendor" placeholder="자동완성" oninput="acSearch(this.value,'o-vendor-ac','o-vendor','client')" autocomplete="off"><div class="ac-list" id="o-vendor-ac"></div></div>
     </div>
     <div class="row2">
-      <div class="field"><label>총금액 (원) *</label><input type="number" id="p-amount" placeholder="0"></div>
-      <div class="field"><label>비용항목</label><select id="p-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="외주비">외주비</option><option value="소모품비">소모품비</option><option value="비품비">비품비</option><option value="복리후생비">복리후생비</option><option value="교통비">교통비</option><option value="식대">식대</option><option value="통신비">통신비</option><option value="수도광열비">수도광열비</option><option value="보험료">보험료</option><option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option><option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option><option value="도서인쇄비">도서인쇄비</option><option value="차량유지비">차량유지비</option><option value="기타">기타</option></select></div>
+      <div class="field"><label>총금액 (원) *</label><input type="number" id="o-amount" placeholder="0"></div>
+      <div class="field"><label>서류종류</label>
+        <select id="o-doctype">
+          <option value="거래명세서">거래명세서</option>
+          <option value="세금계산서">세금계산서</option>
+          <option value="거래명세서+세금계산서">거래명세서+세금계산서</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>비용항목</label>
+      <select id="o-cat">
+        <option value="자재비">자재비</option><option value="인건비">인건비</option>
+        <option value="장비비">장비비</option><option value="용역비">용역비</option>
+        <option value="임차비">임차비</option><option value="외주비">외주비</option>
+        <option value="소모품비">소모품비</option><option value="비품비">비품비</option>
+        <option value="복리후생비">복리후생비</option><option value="교통비">교통비</option>
+        <option value="식대">식대</option><option value="통신비">통신비</option>
+        <option value="수도광열비">수도광열비</option><option value="보험료">보험료</option>
+        <option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option>
+        <option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option>
+        <option value="차량유지비">차량유지비</option><option value="기타">기타</option>
+      </select>
     </div>
     <div class="field">
-      <label>품목 목록 (사무실팀 입력) <button class="btn btn-sm" style="background:#1a1a2e;color:#fff;font-size:11px;margin-left:8px" onclick="addPayItem()">+ 품목 추가</button></label>
-      <div id="pay-items" style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
-        <div class="pay-item-row" style="display:grid;grid-template-columns:1fr 80px 1fr 28px;gap:6px;align-items:center">
-          <input type="text" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
+      <label>품목 목록 <button class="btn btn-sm" style="background:#2980b9;color:#fff;font-size:11px;margin-left:8px" onclick="addOfficeItem()">+ 품목 추가</button></label>
+      <div style="display:grid;grid-template-columns:1fr 80px 32px;gap:4px;margin-bottom:4px;padding:0 4px">
+        <div style="font-size:11px;color:#888;font-weight:600">날짜+품목명</div>
+        <div style="font-size:11px;color:#888;font-weight:600">금액</div>
+        <div></div>
+      </div>
+      <div id="office-items">
+        <div class="item-row-grid">
+          <input type="text" placeholder="예) 06.11 5T투명각면" style="font-size:12px">
           <input type="number" placeholder="금액" style="font-size:12px">
-          <input type="text" placeholder="현장명 (현장팀 입력)" style="font-size:12px;background:#fff9e6;border-color:#f0d060" readonly onclick="this.removeAttribute('readonly');this.focus()">
-          <button onclick="this.closest('.pay-item-row').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:4px;color:#c0392b;font-size:14px">×</button>
+          <button onclick="this.closest('.item-row-grid').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:6px;color:#c0392b;font-size:13px">×</button>
         </div>
       </div>
     </div>
     <div class="field">
-      <label>처리할 항목 선택 (누르면 선택)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-        <div id="chk-stmt" onclick="toggleChk(this)" data-val="거래명세서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
-          <span style="font-size:18px">📄</span><span style="font-size:13px;font-weight:600;color:#888">거래명세서</span>
-        </div>
-        <div id="chk-tax" onclick="toggleChk(this)" data-val="세금계산서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
-          <span style="font-size:18px">🧾</span><span style="font-size:13px;font-weight:600;color:#888">세금계산서</span>
-        </div>
-        <div id="chk-confirm" onclick="toggleChk(this)" data-val="확인" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
-          <span style="font-size:18px">✅</span><span style="font-size:13px;font-weight:600;color:#888">확인</span>
-        </div>
-        <div id="chk-send" onclick="toggleChk(this)" data-val="송금" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
-          <span style="font-size:18px">💸</span><span style="font-size:13px;font-weight:600;color:#888">송금</span>
-        </div>
+      <label>사진/PDF 첨부</label>
+      <div class="upload-area" onclick="document.getElementById('o-file').click()">
+        📎 클릭해서 파일 선택 (사진 또는 PDF)
+        <input type="file" id="o-file" accept="image/*,.pdf" style="display:none" onchange="previewFile(this,'o')">
+      </div>
+      <div id="o-file-preview"></div>
+      <div id="o-upload-progress" style="display:none;margin-top:6px">
+        <div style="background:#f0f0f0;border-radius:4px;height:6px"><div id="o-progress-bar" style="background:#27ae60;height:6px;border-radius:4px;width:0%;transition:width .3s"></div></div>
+        <div id="o-progress-text" style="font-size:12px;color:#888;margin-top:4px;text-align:center">업로드 중...</div>
       </div>
     </div>
-    <div class="field"><label>메모</label><input type="text" id="p-memo"></div>
-    <div class="field">
-      <label>거래명세서/세금계산서 첨부 (사진 또는 PDF)</label>
-      <div id="p-upload-area" onclick="document.getElementById('p-file').click()" style="border:2px dashed #ddd;border-radius:8px;padding:14px;text-align:center;cursor:pointer;color:#bbb;font-size:13px;transition:all .15s">
-        📎 클릭해서 파일 선택 (사진/PDF)
-        <input type="file" id="p-file" accept="image/*,.pdf" style="display:none" onchange="previewPayFile(this)">
-      </div>
-      <div id="p-file-preview" style="display:none;margin-top:8px"></div>
-      <div id="p-upload-progress" style="display:none;margin-top:6px">
-        <div style="background:#f0f0f0;border-radius:4px;height:6px"><div id="p-progress-bar" style="background:#27ae60;height:6px;border-radius:4px;width:0%;transition:width .3s"></div></div>
-        <div id="p-progress-text" style="font-size:12px;color:#888;margin-top:4px;text-align:center">업로드 중...</div>
-      </div>
-    </div>
-    <button class="btn btn-primary" onclick="addPay(false)">📨 등록</button>
+    <div class="field"><label>메모</label><input type="text" id="o-memo" placeholder="메모"></div>
+    <button class="btn btn-office" onclick="submitOfficeDoc()">📨 서류 등록</button>
   </div>
-</div>
 
-<!-- 선송금 모달 -->
-<div id="prepay-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">⚡ 선송금 요청<button class="modal-close" onclick="closeModal('prepay-modal')">×</button></div>
-    <div style="background:#fde8e8;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#922b21;font-weight:600">⚠️ 거래명세서/세금계산서 수령 전 먼저 송금하는 경우</div>
+  <div class="card">
+    <div class="card-title">💰 선송금 요청</div>
+    <div style="background:#fde8e8;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#922b21;font-weight:600">⚠️ 거래명세서/세금계산서 수령 전 먼저 송금하는 경우</div>
     <div class="field"><label>거래처 *</label>
       <div class="ac-wrap"><input type="text" id="pp-vendor" placeholder="자동완성" oninput="acSearch(this.value,'pp-vendor-ac','pp-vendor','client')" autocomplete="off"><div class="ac-list" id="pp-vendor-ac"></div></div>
     </div>
@@ -295,19 +270,124 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="row2">
       <div class="field"><label>금액 (원) *</label><input type="number" id="pp-amount" placeholder="0"></div>
-      <div class="field"><label>비용항목</label><select id="pp-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="외주비">외주비</option><option value="소모품비">소모품비</option><option value="비품비">비품비</option><option value="복리후생비">복리후생비</option><option value="교통비">교통비</option><option value="식대">식대</option><option value="통신비">통신비</option><option value="수도광열비">수도광열비</option><option value="보험료">보험료</option><option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option><option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option><option value="도서인쇄비">도서인쇄비</option><option value="차량유지비">차량유지비</option><option value="기타">기타</option></select></div>
+      <div class="field"><label>비용항목</label>
+        <select id="pp-cat">
+          <option value="자재비">자재비</option><option value="인건비">인건비</option>
+          <option value="장비비">장비비</option><option value="용역비">용역비</option>
+          <option value="임차비">임차비</option><option value="외주비">외주비</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
     </div>
-    <div class="field"><label>선송금 사유</label><input type="text" id="pp-memo" placeholder="사유 입력"></div>
+    <div class="field"><label>사유</label><input type="text" id="pp-memo" placeholder="선송금 사유"></div>
     <div class="field">
       <label>관련 서류 첨부 (선택)</label>
-      <div id="pp-upload-area" onclick="document.getElementById('pp-file').click()" style="border:2px dashed #ddd;border-radius:8px;padding:14px;text-align:center;cursor:pointer;color:#bbb;font-size:13px">
-        📎 클릭해서 파일 선택
-        <input type="file" id="pp-file" accept="image/*,.pdf" style="display:none" onchange="previewPayFile(this,'pp')">
+      <div class="upload-area" onclick="document.getElementById('pp-file').click()">
+        📎 파일 선택
+        <input type="file" id="pp-file" accept="image/*,.pdf" style="display:none" onchange="previewFile(this,'pp')">
       </div>
-      <div id="pp-file-preview" style="display:none;margin-top:8px"></div>
+      <div id="pp-file-preview"></div>
     </div>
-    <button class="btn btn-red" onclick="addPay(true)">⚡ 선송금 등록</button>
+    <button class="btn btn-red" onclick="submitPrepay()">⚡ 선송금 등록</button>
   </div>
+
+  <div class="card">
+    <div class="card-title">📋 등록한 서류 목록</div>
+    <div id="office-doc-list"><div class="loading">로딩 중...</div></div>
+  </div>
+</div>
+
+<!-- 현장팀 탭 -->
+<div id="field" class="page">
+  <div class="team-banner banner-field">👷 현장팀 — 일지 입력 및 서류 확인</div>
+
+  <!-- 현장팀 서브탭 -->
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button class="btn btn-sm" id="ftab-log" onclick="showFieldTab('log')" style="background:#27ae60;color:#fff;flex:1">📋 일지 입력</button>
+    <button class="btn btn-sm btn-gray" id="ftab-docs" onclick="showFieldTab('docs')" style="flex:1">📄 서류 확인</button>
+    <button class="btn btn-sm btn-gray" id="ftab-upload" onclick="showFieldTab('upload')" style="flex:1">📸 사진 업로드</button>
+  </div>
+
+  <!-- 일지 입력 -->
+  <div id="field-tab-log">
+    <div class="card">
+      <div class="card-title">📋 현장 일지 입력</div>
+      <div class="field"><label>날짜 *</label><input type="date" id="w-date"></div>
+      <div class="field"><label>현장/건명 *</label>
+        <div class="ac-wrap"><input type="text" id="w-site" placeholder="현장명 자동완성" oninput="acSearch(this.value,'w-site-ac','w-site','site')" autocomplete="off"><div class="ac-list" id="w-site-ac"></div></div>
+      </div>
+      <div class="field"><label>작업자 *</label><input type="text" id="w-workers" placeholder="예) 홍길동, 김철수"></div>
+      <div class="row2">
+        <div class="field"><label>시작시간</label><input type="time" id="w-start" value="08:00"></div>
+        <div class="field"><label>종료시간</label><input type="time" id="w-end" value="17:00"></div>
+      </div>
+      <div class="field"><label>작업내용 *</label><textarea id="w-work" placeholder="오늘 작업 내용"></textarea></div>
+      <div class="field"><label>특이사항</label><input type="text" id="w-note"></div>
+      <button class="btn btn-field" onclick="submitLog()">✅ 일지 제출</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 최근 일지</div>
+      <div id="recent-logs"><div class="loading">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- 서류 확인 -->
+  <div id="field-tab-docs" style="display:none">
+    <div class="card">
+      <div class="card-title">📄 현장명 입력 필요한 서류</div>
+      <div id="field-confirm-list"><div class="loading">로딩 중...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">✅ 확인 완료된 서류</div>
+      <div id="field-confirmed-list"><div class="loading">로딩 중...</div></div>
+    </div>
+  </div>
+
+  <!-- 현장팀 사진 업로드 -->
+  <div id="field-tab-upload" style="display:none">
+    <div class="card">
+      <div class="card-title">📸 서류/사진 업로드</div>
+      <div style="background:#e9f7ef;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#1e8449;font-weight:600">현장팀이 받은 거래명세서/세금계산서를 사무실로 전달</div>
+      <div class="field"><label>거래처 *</label>
+        <div class="ac-wrap"><input type="text" id="f-vendor" placeholder="자동완성" oninput="acSearch(this.value,'f-vendor-ac','f-vendor','client')" autocomplete="off"><div class="ac-list" id="f-vendor-ac"></div></div>
+      </div>
+      <div class="field"><label>현장/건명</label>
+        <div class="ac-wrap"><input type="text" id="f-site" placeholder="자동완성" oninput="acSearch(this.value,'f-site-ac','f-site','site')" autocomplete="off"><div class="ac-list" id="f-site-ac"></div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>금액 (원)</label><input type="number" id="f-amount" placeholder="0"></div>
+        <div class="field"><label>서류종류</label>
+          <select id="f-doctype">
+            <option value="거래명세서">거래명세서</option>
+            <option value="세금계산서">세금계산서</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>메모</label><input type="text" id="f-memo" placeholder="메모"></div>
+      <div class="field">
+        <label>사진/PDF 첨부 *</label>
+        <div class="upload-area" onclick="document.getElementById('f-file').click()">
+          📎 클릭해서 파일 선택
+          <input type="file" id="f-file" accept="image/*,.pdf" style="display:none" onchange="previewFile(this,'f')">
+        </div>
+        <div id="f-file-preview"></div>
+      </div>
+      <button class="btn btn-field" onclick="submitFieldDoc()">📤 사무실로 전달</button>
+    </div>
+  </div>
+</div>
+
+<!-- 결제 탭 -->
+<div id="pay" class="page">
+  <div class="stat-grid" id="pay-stats"></div>
+  <div style="display:flex;gap:6px;margin-bottom:10px">
+    <select id="pay-filter" onchange="renderPays()" style="flex:1;font-size:12px">
+      <option value="all">전체</option>
+      <option value="진행">진행중</option>
+      <option value="완료">완료</option>
+    </select>
+  </div>
+  <div id="pay-list"><div class="loading">로딩 중...</div></div>
 </div>
 
 <!-- 결제 처리 모달 -->
@@ -319,14 +399,13 @@ textarea{resize:vertical;min-height:60px}
 <div id="excel-modal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-title">📥 엑셀 업로드<button class="modal-close" onclick="closeModal('excel-modal')">×</button></div>
-    <p style="font-size:13px;color:#555;margin-bottom:8px;line-height:1.7">엑셀 파일을 업로드하거나 데이터를 붙여넣으세요.<br>
-    <b>컬럼 순서:</b> 거래처코드 | 거래처명 | 대표자명 | 전화 | 모바일 | 이메일 | 사용구분 | 이체정보(은행/계좌/예금주)</p>
+    <p style="font-size:13px;color:#555;margin-bottom:8px;line-height:1.7">엑셀 파일 업로드 또는 붙여넣기<br><b>컬럼:</b> 거래처코드 | 거래처명 | 대표자 | 전화 | 모바일 | 이메일</p>
     <div class="upload-area" onclick="document.getElementById('xlsx-file').click()">
-      📂 엑셀 파일 클릭하여 업로드 (.xlsx)
+      📂 엑셀 파일 업로드 (.xlsx)
       <input type="file" id="xlsx-file" accept=".xlsx,.xls" style="display:none" onchange="handleExcelFile(this)">
     </div>
     <div style="text-align:center;color:#bbb;font-size:12px;margin:8px 0">또는</div>
-    <div class="field"><label>직접 붙여넣기</label><textarea id="excel-paste" placeholder="엑셀에서 복사 후 붙여넣기..." style="min-height:120px;font-size:12px;font-family:monospace"></textarea></div>
+    <div class="field"><label>직접 붙여넣기</label><textarea id="excel-paste" placeholder="엑셀에서 복사 후 붙여넣기..." style="min-height:100px;font-size:12px;font-family:monospace"></textarea></div>
     <button class="btn btn-primary" onclick="importExcelPaste()">📥 등록</button>
   </div>
 </div>
@@ -348,26 +427,43 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let clients=[], sites=[], logs=[], pays=[];
+// Cloudinary
+const CLOUD_NAME = 'djfvoxf2h';
+const UPLOAD_PRESET = 'totalsystem_unsigned';
+
+let clients=[], sites=[], logs=[], pays=[], docs=[];
 let curSiteId=null;
 
-// 계약서류 목록
-const CONTRACT_DOCS = ['계약서','견적서','사업자등록증','계약보증금 지급각서','보안각서','청렴서약서','수의계약사유서','조세포탈서약서(계약이전 날짜로)','수의계약체결여부확인서(계약이전 날짜로)','공정표','도면','법인인감증명서','사용인감계','법인등기부등본','수입인지(천만원 이상 2만원)','<예외> 건설업등록수첩','<예외> 건설업등록증','안전보건작업계획서','산업재해율확인서','비교견적서','승낙사항','퇴직자영입확인서'];
-const CLAIM_DOCS = ['착공계','현장대리인계','현장대리인 재직증명서','<예외> 직원분 자격증','준공계','준공검사조서','준공검사원','대금청구서','통장사본','국세 완납증명서','지방세 완납증명서','4대보험 완납증명서','작업사진','하자이행증권','<예외> 하자보증금지급각서'];
+const CONTRACT_DOCS=['계약서','견적서','사업자등록증','계약보증금 지급각서','보안각서','청렴서약서','수의계약사유서','조세포탈서약서(계약이전 날짜로)','수의계약체결여부확인서(계약이전 날짜로)','공정표','도면','법인인감증명서','사용인감계','법인등기부등본','수입인지(천만원 이상 2만원)','<예외> 건설업등록수첩','<예외> 건설업등록증','안전보건작업계획서','산업재해율확인서','비교견적서','승낙사항','퇴직자영입확인서'];
+const CLAIM_DOCS=['착공계','현장대리인계','현장대리인 재직증명서','<예외> 직원분 자격증','준공계','준공검사조서','준공검사원','대금청구서','통장사본','국세 완납증명서','지방세 완납증명서','4대보험 완납증명서','작업사진','하자이행증권','<예외> 하자보증금지급각서'];
 
 // 실시간 구독
 onSnapshot(collection(db,'clients'),snap=>{clients=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));renderClients();renderDash();});
 onSnapshot(collection(db,'sites'),snap=>{sites=snap.docs.map(d=>({id:d.id,...d.data()}));renderSites();renderDash();});
-onSnapshot(collection(db,'logs'),snap=>{logs=snap.docs.map(d=>({id:d.id,...d.data()}));if(curSiteId)renderSiteLogTab();renderDash();});
+onSnapshot(collection(db,'logs'),snap=>{logs=snap.docs.map(d=>({id:d.id,...d.data()}));renderRecentLogs();renderDash();});
 onSnapshot(collection(db,'pays'),snap=>{pays=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderPays();renderDash();});
+onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderOfficeDocs();renderFieldDocs();renderDash();});
 
 // 유틸
 window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 window.openModal=function(id){document.getElementById(id).style.display='block';document.body.style.overflow='hidden';}
 window.closeModal=function(id){document.getElementById(id).style.display='none';document.body.style.overflow='';}
-window.showTab=function(id,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('on');el.classList.add('on');}
+window.showTab=function(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');el.classList.add('on');
+  if(id==='field')renderFieldDocs();
+}
 window.showView=function(s,h){document.getElementById(s).style.display='';document.getElementById(h).style.display='none';}
-
+window.showFieldTab=function(tab){
+  ['log','docs','upload'].forEach(t=>{
+    document.getElementById('field-tab-'+t).style.display=tab===t?'block':'none';
+    const btn=document.getElementById('ftab-'+t);
+    btn.style.background=tab===t?'#27ae60':'#f0f0f0';
+    btn.style.color=tab===t?'#fff':'#555';
+  });
+  if(tab==='docs')renderFieldDocs();
+}
 window.showSiteTab=function(tab){
   ['info','docs','claim','log'].forEach(t=>{
     document.getElementById('site-tab-'+t).style.display=tab===t?'block':'none';
@@ -392,15 +488,220 @@ window.acSearch=function(val,acId,inputId,type){
 window.selAc=function(val,acId,inputId){document.getElementById(inputId).value=val;document.getElementById(acId).style.display='none';}
 document.addEventListener('click',e=>{if(!e.target.closest('.ac-wrap'))document.querySelectorAll('.ac-list').forEach(a=>a.style.display='none');});
 
+// 파일 미리보기
+window.previewFile=function(input,prefix){
+  const file=input.files[0];if(!file)return;
+  const preview=document.getElementById(prefix+'-file-preview');
+  const area=input.closest('.upload-area')||input.parentElement.querySelector('.upload-area');
+  if(file.type.startsWith('image/')){
+    const reader=new FileReader();
+    reader.onload=e=>{preview.innerHTML=`<img src="${e.target.result}" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-top:6px">`;};
+    reader.readAsDataURL(file);
+  }else{
+    preview.innerHTML=`<div style="background:#f0f4ff;border-radius:8px;padding:10px;text-align:center;font-size:13px;color:#2980b9;margin-top:6px">📄 ${file.name}</div>`;
+  }
+}
+
+// Cloudinary 업로드
+async function uploadToCloud(file,progressEl,barEl){
+  const fd=new FormData();
+  fd.append('file',file);fd.append('upload_preset',UPLOAD_PRESET);fd.append('folder','totalsystem');
+  return new Promise((res,rej)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST',`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+    if(progressEl)progressEl.style.display='block';
+    xhr.upload.onprogress=e=>{if(barEl)barEl.style.width=Math.round(e.loaded/e.total*100)+'%';};
+    xhr.onload=()=>{const r=JSON.parse(xhr.responseText);if(r.secure_url)res(r);else rej(r);};
+    xhr.onerror=rej;xhr.send(fd);
+  });
+}
+
+// 품목 추가
+window.addOfficeItem=function(){
+  const container=document.getElementById('office-items');
+  const row=document.createElement('div');
+  row.className='item-row-grid';
+  row.innerHTML=`<input type="text" placeholder="예) 06.25 5T투명각면" style="font-size:12px"><input type="number" placeholder="금액" style="font-size:12px"><button onclick="this.closest('.item-row-grid').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:6px;color:#c0392b;font-size:13px">×</button>`;
+  container.appendChild(row);
+}
+
+// 사무실 서류 등록
+window.submitOfficeDoc=async function(){
+  const vendor=document.getElementById('o-vendor').value.trim();
+  const amount=parseInt(document.getElementById('o-amount').value)||0;
+  if(!vendor||!amount)return showToast('⚠️ 거래처와 금액을 입력하세요');
+  // 품목 수집
+  const items=[];
+  document.querySelectorAll('#office-items .item-row-grid').forEach(row=>{
+    const inputs=row.querySelectorAll('input');
+    const name=(inputs[0].value||'').trim();
+    const amt=parseInt(inputs[1].value)||0;
+    if(name)items.push({name,amt,site:'',confirmed:false});
+  });
+  // 파일 업로드
+  let fileUrl='',fileType='',fileName='';
+  const fileInput=document.getElementById('o-file');
+  if(fileInput&&fileInput.files[0]){
+    try{
+      showToast('📤 업로드 중...');
+      const r=await uploadToCloud(fileInput.files[0],document.getElementById('o-upload-progress'),document.getElementById('o-progress-bar'));
+      fileUrl=r.secure_url;fileType=fileInput.files[0].type;fileName=fileInput.files[0].name;
+      document.getElementById('o-upload-progress').style.display='none';
+    }catch(e){showToast('⚠️ 파일 업로드 실패');}
+  }
+  await addDoc(collection(db,'docs'),{vendor,amount,cat:document.getElementById('o-cat').value,doctype:document.getElementById('o-doctype').value,memo:document.getElementById('o-memo').value.trim(),items,fileUrl,fileType,fileName,from:'office',allConfirmed:items.length===0,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  ['o-vendor','o-amount','o-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('o-file-preview').innerHTML='';
+  document.getElementById('office-items').innerHTML=`<div class="item-row-grid"><input type="text" placeholder="예) 06.11 5T투명각면" style="font-size:12px"><input type="number" placeholder="금액" style="font-size:12px"><button onclick="this.closest('.item-row-grid').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:6px;color:#c0392b;font-size:13px">×</button></div>`;
+  showToast('✅ 서류 등록 완료! 현장팀 확인 필요');
+}
+
+// 현장팀 사진 업로드
+window.submitFieldDoc=async function(){
+  const vendor=document.getElementById('f-vendor').value.trim();
+  if(!vendor)return showToast('⚠️ 거래처를 입력하세요');
+  const fileInput=document.getElementById('f-file');
+  let fileUrl='',fileType='',fileName='';
+  if(fileInput&&fileInput.files[0]){
+    try{
+      showToast('📤 업로드 중...');
+      const r=await uploadToCloud(fileInput.files[0],null,null);
+      fileUrl=r.secure_url;fileType=fileInput.files[0].type;fileName=fileInput.files[0].name;
+    }catch(e){showToast('⚠️ 파일 업로드 실패');}
+  }
+  await addDoc(collection(db,'docs'),{vendor,amount:parseInt(document.getElementById('f-amount').value)||0,cat:'',doctype:document.getElementById('f-doctype').value,memo:document.getElementById('f-memo').value.trim(),items:[{name:'현장팀 전달 서류',amt:0,site:document.getElementById('f-site').value.trim(),confirmed:!!document.getElementById('f-site').value.trim()}],fileUrl,fileType,fileName,from:'field',allConfirmed:!!document.getElementById('f-site').value.trim(),createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  ['f-vendor','f-amount','f-site','f-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-file-preview').innerHTML='';
+  showToast('✅ 사무실로 전달 완료!');
+}
+
+// 선송금 등록
+window.submitPrepay=async function(){
+  const vendor=document.getElementById('pp-vendor').value.trim();
+  const amount=parseInt(document.getElementById('pp-amount').value)||0;
+  if(!vendor||!amount)return showToast('⚠️ 거래처와 금액을 입력하세요');
+  let fileUrl='',fileType='',fileName='';
+  const fileInput=document.getElementById('pp-file');
+  if(fileInput&&fileInput.files[0]){
+    try{const r=await uploadToCloud(fileInput.files[0],null,null);fileUrl=r.secure_url;fileType=fileInput.files[0].type;fileName=fileInput.files[0].name;}catch(e){}
+  }
+  await addDoc(collection(db,'pays'),{vendor,amount,siteKey:document.getElementById('pp-site').value.trim(),cat:document.getElementById('pp-cat').value,memo:document.getElementById('pp-memo').value.trim(),isPrepay:true,steps:['선송금','거래명세서','세금계산서'],curStep:0,stepDates:{},fileUrl,fileType,fileName,items:[],createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  ['pp-vendor','pp-amount','pp-site','pp-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pp-file-preview').innerHTML='';
+  showToast('✅ 선송금 등록 완료');
+}
+
+// 현장팀 서류 확인 - 현장명 입력
+window.confirmDocItem=async function(docId,idx,siteVal){
+  const d=docs.find(d=>d.id===docId);if(!d)return;
+  const items=[...(d.items||[])];
+  items[idx]={...items[idx],site:siteVal,confirmed:!!siteVal};
+  const allConfirmed=items.every(i=>i.confirmed);
+  try{
+    await updateDoc(doc(db,'docs',docId),{items,allConfirmed});
+    showToast('✅ 현장명 저장!');
+  }catch(e){showToast('⚠️ 저장 실패 — Firebase 규칙 확인 필요');}
+}
+
+// 서류 삭제
+window.deleteDoc=async function(id){
+  if(!confirm('삭제할까요?'))return;
+  await deleteDoc(doc(db,'docs',id));showToast('🗑️ 삭제');
+}
+
+// 서류 렌더링
+function renderOfficeDocs(){
+  const el=document.getElementById('office-doc-list');if(!el)return;
+  const officeDocs=docs.filter(d=>d.from==='office'||d.from==='field');
+  if(!officeDocs.length){el.innerHTML='<div class="empty">등록된 서류 없음</div>';return;}
+  el.innerHTML=officeDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:13px;font-weight:700">${d.vendor}</div>
+        <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
+        ${d.from==='field'?'<span class="badge b-ok" style="margin-top:4px">현장팀 전달</span>':''}
+      </div>
+      <div style="display:flex;gap:4px;align-items:center">
+        <span class="badge ${d.allConfirmed?'b-ok':'b-wait'}">${d.allConfirmed?'확인완료':'현장명 대기'}</span>
+        <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
+      </div>
+    </div>
+    ${d.fileUrl?`<div style="margin-top:8px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
+  </div>`).join('');
+}
+
+function renderFieldDocs(){
+  const unconfirmed=docs.filter(d=>!d.allConfirmed&&d.items&&d.items.length>0);
+  const confirmed=docs.filter(d=>d.allConfirmed&&d.items&&d.items.length>0);
+  const ucEl=document.getElementById('field-confirm-list');
+  const cEl=document.getElementById('field-confirmed-list');
+  if(!ucEl||!cEl)return;
+  if(!unconfirmed.length){ucEl.innerHTML='<div class="empty">✅ 모두 확인 완료!</div>';}
+  else ucEl.innerHTML=unconfirmed.map(d=>`<div class="confirm-card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
+    </div>
+    ${d.fileUrl?`${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-bottom:10px;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px;margin-bottom:10px">📄 ${d.fileName||'파일 보기'}</a>`}`:''}
+    <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:6px">품목별 현장명 입력:</div>
+    ${(d.items||[]).map((item,i)=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5;align-items:center">
+      <div style="font-size:13px">${item.name} ${item.amt?`<span style="color:#888;font-size:11px">(${(item.amt).toLocaleString()}원)</span>`:''}</div>
+      <div>
+        ${item.confirmed?`<span style="color:#27ae60;font-weight:700;font-size:13px">✅ ${item.site}</span>`:`
+        <div class="ac-wrap">
+          <input type="text" value="${item.site||''}" placeholder="현장명 입력 후 엔터" 
+            style="font-size:12px;background:#fff9e6;border-color:#f0d060"
+            oninput="acSearch(this.value,'fc-ac-${d.id}-${i}','fc-input-${d.id}-${i}','site')"
+            id="fc-input-${d.id}-${i}"
+            onkeydown="if(event.key==='Enter'){confirmDocItem('${d.id}',${i},this.value)}"
+            autocomplete="off">
+          <div class="ac-list" id="fc-ac-${d.id}-${i}"></div>
+        </div>
+        <button class="btn btn-sm btn-field" style="margin-top:4px;width:100%;justify-content:center" onclick="confirmDocItem('${d.id}',${i},document.getElementById('fc-input-${d.id}-${i}').value)">저장</button>`}
+      </div>
+    </div>`).join('')}
+  </div>`).join('');
+  if(!confirmed.length){cEl.innerHTML='<div class="empty">없음</div>';}
+  else cEl.innerHTML=confirmed.map(d=>`<div class="confirm-card confirmed" style="opacity:.8">
+    <div style="display:flex;justify-content:space-between">
+      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
+      <span class="badge b-ok">확인완료</span>
+    </div>
+    ${(d.items||[]).map(item=>`<div style="font-size:12px;color:#555;margin-top:4px">• ${item.name} → <b>${item.site}</b></div>`).join('')}
+  </div>`).join('');
+}
+
+// 최근 일지
+function renderRecentLogs(){
+  const el=document.getElementById('recent-logs');if(!el)return;
+  const recent=logs.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,10);
+  if(!recent.length){el.innerHTML='<div class="empty">일지 없음</div>';return;}
+  el.innerHTML=recent.map(l=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+    <div style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''}</div>
+    <div style="font-size:13px;font-weight:600;margin-top:2px">👷 ${l.workers||''}</div>
+    <div style="font-size:12px;color:#555;margin-top:1px">${l.siteName||l.siteId||''} · ${l.work||''}</div>
+  </div>`).join('');
+}
+
+// 일지 제출
+window.submitLog=async function(){
+  const site=document.getElementById('w-site').value.trim();
+  const workers=document.getElementById('w-workers').value.trim();
+  const work=document.getElementById('w-work').value.trim();
+  if(!site||!workers||!work)return showToast('⚠️ 현장, 작업자, 작업내용은 필수');
+  const matched=sites.find(s=>(s.client+' - '+s.contract)===site||s.contract===site);
+  await addDoc(collection(db,'logs'),{siteId:matched?matched.id:'',siteName:site,date:document.getElementById('w-date').value,workers,startTime:document.getElementById('w-start').value,endTime:document.getElementById('w-end').value,work,note:document.getElementById('w-note').value.trim(),createdAt:Date.now()});
+  document.getElementById('w-workers').value='';document.getElementById('w-work').value='';document.getElementById('w-note').value='';
+  showToast('✅ 일지 제출 완료! 수고하셨습니다 👍');
+}
+
 // 거래처
 window.addClient=async function(){
   const name=document.getElementById('c-name').value.trim();
   if(!name)return showToast('⚠️ 상호명을 입력하세요');
   await addDoc(collection(db,'clients'),{name,ceo:document.getElementById('c-ceo').value.trim(),biz:document.getElementById('c-biz').value.trim(),addr:document.getElementById('c-addr').value.trim(),tel:document.getElementById('c-tel').value.trim(),email:document.getElementById('c-email').value.trim(),bank:document.getElementById('c-bank').value.trim(),holder:document.getElementById('c-holder').value.trim(),account:document.getElementById('c-account').value.trim(),memo:document.getElementById('c-memo').value.trim(),createdAt:Date.now()});
   ['c-name','c-ceo','c-biz','c-addr','c-tel','c-email','c-bank','c-holder','c-account','c-memo'].forEach(id=>document.getElementById(id).value='');
-  showToast('✅ 거래처 등록 완료');
+  showToast('✅ 거래처 등록');
 }
-
 window.handleExcelFile=function(input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
@@ -412,68 +713,42 @@ window.handleExcelFile=function(input){
       let count=0;
       for(const row of rows){
         if(!row[1]||row[1]==='거래처명')continue;
-        const name=String(row[1]).trim();
-        if(!name)continue;
+        const name=String(row[1]).trim();if(!name)continue;
         if(clients.find(c=>c.name===name))continue;
         await addDoc(collection(db,'clients'),{name,biz:String(row[0]||'').trim(),ceo:String(row[2]||'').trim(),tel:String(row[3]||'').trim(),mobile:String(row[4]||'').trim(),email:String(row[5]||'').trim(),bank:'',holder:'',account:'',memo:'',createdAt:Date.now()});
         count++;
       }
-      closeModal('excel-modal');
-      showToast(`✅ ${count}개 거래처 등록 완료`);
+      closeModal('excel-modal');showToast(`✅ ${count}개 등록 완료`);
     }catch(err){showToast('⚠️ 파일 읽기 오류');}
   };
   reader.readAsArrayBuffer(file);
 }
-
 window.importExcelPaste=async function(){
-  const text=document.getElementById('excel-paste').value.trim();
-  if(!text)return showToast('⚠️ 데이터를 입력하세요');
-  const lines=text.split('\n').filter(l=>l.trim());
-  let count=0;
+  const text=document.getElementById('excel-paste').value.trim();if(!text)return;
+  const lines=text.split('\n').filter(l=>l.trim());let count=0;
   for(const line of lines){
-    const cols=line.split('\t');
-    if(cols.length<2)continue;
-    const name=(cols[1]||'').trim();
-    if(!name||name==='거래처명')continue;
+    const cols=line.split('\t');if(cols.length<2)continue;
+    const name=(cols[1]||'').trim();if(!name||name==='거래처명')continue;
     if(clients.find(c=>c.name===name))continue;
-    await addDoc(collection(db,'clients'),{name,biz:(cols[0]||'').trim(),ceo:(cols[2]||'').trim(),tel:(cols[3]||'').trim(),mobile:(cols[4]||'').trim(),email:(cols[5]||'').trim(),bank:(cols[7]||'').trim(),holder:(cols[8]||'').trim(),account:(cols[6]||'').trim(),memo:'',createdAt:Date.now()});
-    count++;
+    await addDoc(collection(db,'clients'),{name,biz:(cols[0]||'').trim(),ceo:(cols[2]||'').trim(),tel:(cols[3]||'').trim(),mobile:(cols[4]||'').trim(),email:(cols[5]||'').trim(),bank:'',holder:'',account:'',memo:'',createdAt:Date.now()});count++;
   }
-  document.getElementById('excel-paste').value='';
-  closeModal('excel-modal');
-  showToast(`✅ ${count}개 거래처 등록 완료`);
+  document.getElementById('excel-paste').value='';closeModal('excel-modal');showToast(`✅ ${count}개 등록`);
 }
-
-window.deleteClient=async function(id){
-  if(!confirm('삭제할까요?'))return;
-  await deleteDoc(doc(db,'clients',id));
-  showToast('🗑️ 삭제 완료');
-}
-
+window.deleteClient=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'clients',id));showToast('🗑️');}
 window.openClient=function(id){
   const c=clients.find(c=>c.id===id);if(!c)return;
   const related=sites.filter(s=>s.client===c.name);
-  const totalPay=pays.filter(p=>p.vendor===c.name).reduce((s,p)=>s+(p.amount||0),0);
   document.getElementById('client-detail-card').innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-      <div><div style="font-size:16px;font-weight:700">${c.name}</div></div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-sm btn-gray" onclick="editClient('${id}')">✏️ 수정</button>
-        <button class="btn btn-sm" style="background:#fde8e8;color:#c0392b" onclick="deleteClient('${id}');showView('client-list-view','client-detail-view')">🗑️</button>
-      </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:700">${c.name}</div>
+      <div style="display:flex;gap:6px"><button class="btn btn-sm btn-gray" onclick="editClient('${id}')">✏️</button><button class="btn btn-sm" style="background:#fde8e8;color:#c0392b" onclick="deleteClient('${id}');showView('client-list-view','client-detail-view')">🗑️</button></div>
     </div>
-    <div class="divider" style="margin:8px 0"></div>
     ${[['대표자',c.ceo],['사업자번호',c.biz],['주소',c.addr],['전화',c.tel],['이메일',c.email]].filter(r=>r[1]).map(r=>`<div class="info-row"><div class="info-key">${r[0]}</div><div class="info-val">${r[1]}</div></div>`).join('')}
-    ${c.account?`<div class="divider" style="margin:8px 0"></div><div class="section-label">💳 이체 정보</div>${[['은행',c.bank],['예금주',c.holder],['계좌번호',c.account]].filter(r=>r[1]).map(r=>`<div class="info-row"><div class="info-key">${r[0]}</div><div class="info-val" style="font-weight:${r[0]==='계좌번호'?'700':'400'}">${r[1]}</div></div>`).join('')}`:''}
+    ${c.account?`<div class="divider"></div><div class="section-label">💳 이체정보</div>${[['은행',c.bank],['예금주',c.holder],['계좌번호',c.account]].filter(r=>r[1]).map(r=>`<div class="info-row"><div class="info-key">${r[0]}</div><div class="info-val" style="font-weight:${r[0]==='계좌번호'?'700':'400'}">${r[1]}</div></div>`).join('')}`:''}
     <div class="divider"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-      <div class="stat" style="padding:10px"><div class="stat-n" style="font-size:16px">${related.length}</div><div class="stat-l">관련 현장</div></div>
-      <div class="stat" style="padding:10px"><div class="stat-n" style="font-size:16px">${Math.round(totalPay/10000)}만</div><div class="stat-l">총 거래액</div></div>
-    </div>
-    ${related.map(s=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px"><div style="flex:1"><div style="font-weight:600">${s.contract}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}">${s.status}</span></div>`).join('')}`;
+    ${related.map(s=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px"><div style="flex:1;font-weight:600">${s.contract}</div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}">${s.status}</span></div>`).join('')}`;
   showView('client-detail-view','client-list-view');
 }
-
 window.editClient=function(id){
   const c=clients.find(c=>c.id===id);if(!c)return;
   document.getElementById('client-detail-card').innerHTML=`
@@ -481,80 +756,50 @@ window.editClient=function(id){
     ${[['상호명','name'],['대표자','ceo'],['사업자번호','biz'],['주소','addr'],['전화','tel'],['이메일','email'],['은행','bank'],['예금주','holder'],['계좌번호','account'],['메모','memo']].map(([l,k])=>`<div class="field"><label>${l}</label><input type="text" id="edit-${k}" value="${(c[k]||'').replace(/"/g,'&quot;')}"></div>`).join('')}
     <div style="display:flex;gap:8px"><button class="btn btn-primary" style="flex:1" onclick="saveEdit('${id}')">💾 저장</button><button class="btn btn-gray" style="flex:1" onclick="openClient('${id}')">취소</button></div>`;
 }
-
 window.saveEdit=async function(id){
-  const data={};
-  ['name','ceo','biz','addr','tel','email','bank','holder','account','memo'].forEach(k=>{const el=document.getElementById('edit-'+k);if(el)data[k]=el.value.trim();});
-  await updateDoc(doc(db,'clients',id),data);
-  showToast('✅ 저장 완료');openClient(id);
+  const data={};['name','ceo','biz','addr','tel','email','bank','holder','account','memo'].forEach(k=>{const el=document.getElementById('edit-'+k);if(el)data[k]=el.value.trim();});
+  await updateDoc(doc(db,'clients',id),data);showToast('✅ 저장');openClient(id);
 }
-
 function renderClients(){
   const q=(document.getElementById('c-search')||{}).value||'';
   const filtered=q?clients.filter(c=>c.name&&c.name.includes(q)):clients;
   const el=document.getElementById('client-list');if(!el)return;
-  if(!filtered.length){el.innerHTML='<div class="empty">거래처가 없습니다</div>';return;}
-  el.innerHTML=filtered.map(c=>`<div class="list-item">
-    <div class="item-icon" style="background:#e8f0fe;cursor:pointer" onclick="openClient('${c.id}')">🏢</div>
-    <div style="flex:1;min-width:0;cursor:pointer" onclick="openClient('${c.id}')">
-      <div class="item-name">${c.name}</div>
-      <div class="item-sub">${c.ceo?'대표 '+c.ceo:''}${c.account?' · 💳 계좌등록':''}</div>
-    </div>
-    <button class="btn-del" onclick="deleteClient('${c.id}')">🗑</button>
-  </div>`).join('');
+  if(!filtered.length){el.innerHTML='<div class="empty">거래처 없음</div>';return;}
+  el.innerHTML=filtered.map(c=>`<div class="list-item"><div class="item-icon" style="background:#e8f0fe;cursor:pointer" onclick="openClient('${c.id}')">🏢</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openClient('${c.id}')"><div class="item-name">${c.name}</div><div class="item-sub">${c.ceo?'대표 '+c.ceo:''}${c.account?' · 💳':''}</div></div><button class="btn-del" onclick="deleteClient('${c.id}')">🗑</button></div>`).join('');
 }
 
 // 현장
 window.addSite=async function(){
   const client=document.getElementById('s-client').value.trim();
   const contract=document.getElementById('s-contract').value.trim();
-  if(!client||!contract)return showToast('⚠️ 발주처와 건명을 입력하세요');
+  if(!client||!contract)return showToast('⚠️ 발주처와 건명 입력');
   await addDoc(collection(db,'sites'),{client,contract,contractDate:document.getElementById('s-contractdate').value,start:document.getElementById('s-start').value,end:document.getElementById('s-end').value,price:parseInt(document.getElementById('s-price').value)||0,status:document.getElementById('s-status').value,contractDocs:{},claimDocs:{},extraContractDocs:[],extraClaimDocs:[],createdAt:Date.now()});
   ['s-client','s-contract','s-contractdate','s-start','s-end','s-price'].forEach(id=>document.getElementById(id).value='');
-  showToast('✅ 현장 등록 완료');
+  showToast('✅ 현장 등록');
 }
-
 window.deleteSite=async function(id){
-  if(!confirm('삭제할까요?'))return;
-  await deleteDoc(doc(db,'sites',id));
-  showToast('🗑️ 삭제 완료');
+  if(!confirm('삭제?'))return;
+  await deleteDoc(doc(db,'sites',id));showToast('🗑️');
 }
-
 window.openSite=function(id){
-  curSiteId=id;
-  const s=sites.find(s=>s.id===id);if(!s)return;
+  curSiteId=id;const s=sites.find(s=>s.id===id);if(!s)return;
   const sp=pays.filter(p=>p.siteKey&&p.siteKey.includes(s.contract));
   const total=sp.reduce((sum,p)=>sum+(p.amount||0),0);
   const labor=sp.filter(p=>p.cat==='인건비').reduce((sum,p)=>sum+(p.amount||0),0);
   const mat=sp.filter(p=>p.cat==='자재비').reduce((sum,p)=>sum+(p.amount||0),0);
-  const logCnt=logs.filter(l=>l.siteId===id).length;
-  const contractPct=Math.round(Object.values(s.contractDocs||{}).filter(v=>v).length/CONTRACT_DOCS.length*100);
-  const claimPct=Math.round(Object.values(s.claimDocs||{}).filter(v=>v).length/CLAIM_DOCS.length*100);
   document.getElementById('site-tab-info').innerHTML=`
     <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-      <div><div style="font-size:15px;font-weight:700">${s.contract}</div><div style="font-size:12px;color:#999;margin-top:3px">${s.client}</div>
-      <span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-top:6px">${s.status}</span></div>
+      <div><div style="font-size:15px;font-weight:700">${s.contract}</div><div style="font-size:12px;color:#999">${s.client}</div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-top:6px">${s.status}</span></div>
       <button class="btn-del" onclick="deleteSite('${id}');showView('site-list-view','site-detail-view')">🗑️</button>
     </div>
-    ${[['계약일',s.contractDate],['착공일',s.start],['준공예정',s.end],['계약금액',s.price?(s.price).toLocaleString()+'원':'']].filter(r=>r[1]).map(r=>`<div class="info-row"><div class="info-key">${r[0]}</div><div class="info-val">${r[1]}</div></div>`).join('')}
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px">
+    ${[['계약일',s.contractDate],['착공일',s.start],['준공예정',s.end],['계약금액',s.price?s.price.toLocaleString()+'원':'']].filter(r=>r[1]).map(r=>`<div class="info-row"><div class="info-key">${r[0]}</div><div class="info-val">${r[1]}</div></div>`).join('')}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:12px">
       <div class="stat" style="padding:8px"><div class="stat-n" style="font-size:14px">${Math.round(total/10000)}만</div><div class="stat-l">총지출</div></div>
       <div class="stat" style="padding:8px"><div class="stat-n" style="font-size:14px">${Math.round(labor/10000)}만</div><div class="stat-l">인건비</div></div>
       <div class="stat" style="padding:8px"><div class="stat-n" style="font-size:14px">${Math.round(mat/10000)}만</div><div class="stat-l">자재비</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <div class="stat" style="padding:8px"><div class="stat-n" style="font-size:14px">${logCnt}</div><div class="stat-l">일지</div></div>
-      <div class="stat" style="padding:8px">
-        <div style="font-size:12px;color:#666">계약서류 ${contractPct}%</div>
-        <div class="progress-bar" style="margin-top:4px"><div class="progress-fill" style="width:${contractPct}%"></div></div>
-        <div style="font-size:12px;color:#666;margin-top:4px">청구서류 ${claimPct}%</div>
-        <div class="progress-bar" style="margin-top:4px"><div class="progress-fill" style="width:${claimPct}%"></div></div>
-      </div>
     </div>`;
-  showView('site-detail-view','site-list-view');
-  showSiteTab('info');
+  showView('site-detail-view','site-list-view');showSiteTab('info');
 }
-
 function renderDocTab(type){
   const s=sites.find(s=>s.id===curSiteId);if(!s)return;
   const tabEl=document.getElementById('site-tab-'+type);
@@ -564,75 +809,57 @@ function renderDocTab(type){
   const checkedCnt=Object.values(docData).filter(v=>v).length+extraList.filter(e=>e.checked).length;
   const totalCnt=baseList.length+extraList.length;
   tabEl.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-weight:700;font-size:14px">${type==='docs'?'📋 계약서류':'📄 청구서류'}</div>
-      <div style="font-size:12px;color:#888">${checkedCnt}/${totalCnt} 완료</div>
-    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px"><div style="font-weight:700">${type==='docs'?'📋 계약서류':'📄 청구서류'}</div><div style="font-size:12px;color:#888">${checkedCnt}/${totalCnt}</div></div>
     <div class="progress-bar" style="margin-bottom:12px"><div class="progress-fill" style="width:${totalCnt?Math.round(checkedCnt/totalCnt*100):0}%"></div></div>
-    <div class="doc-list">
-      ${baseList.map((docName,i)=>{
-        const checked=!!docData[i];
-        return`<div class="doc-item ${checked?'checked':''}">
-          <input type="checkbox" ${checked?'checked':''} onclick="toggleDoc('${curSiteId}','${type}',${i})">
-          <span class="doc-label" id="bl-${type}-${i}">${docName}</span>
-          <button class="btn-del" onclick="startEditBaseDoc('${type}',${i},'${docName.replace(/'/g,"\'")}')" style="font-size:12px;color:#bbb" title="수정">✏️</button>
-        </div>`;
-      }).join('')}
-      ${extraList.map((e,i)=>`<div class="doc-item ${e.checked?'checked':''}">
-        <input type="checkbox" ${e.checked?'checked':''} onclick="toggleExtraDoc('${curSiteId}','${type}',${i})">
-        <span class="doc-label" style="color:#2980b9">${e.name} <span style="font-size:10px;color:#bbb">(추가)</span></span>
-        <button class="btn-del" onclick="startEditExtraDoc('${curSiteId}','${type}',${i},'${e.name.replace(/'/g,"\'")}')" style="font-size:12px;color:#bbb" title="수정">✏️</button>
-        <button class="btn-del" onclick="removeExtraDoc('${curSiteId}','${type}',${i})" style="font-size:12px" title="삭제">🗑</button>
-      </div>`).join('')}
-    </div>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <input type="text" id="extra-doc-input-${type}" placeholder="추가 서류명 입력" style="flex:1">
-      <button class="btn btn-sm" style="background:#1a1a2e;color:#fff;flex-shrink:0" onclick="addExtraDoc('${curSiteId}','${type}')">+ 추가</button>
-    </div>`;
+    ${baseList.map((docName,i)=>{const checked=!!docData[i];return`<div class="doc-item ${checked?'checked':''}"><input type="checkbox" ${checked?'checked':''} onclick="toggleDoc('${curSiteId}','${type}',${i})"><span style="flex:1">${docName}</span><button class="btn-del" onclick="startEditBaseDoc('${type}',${i},'${docName.replace(/'/g,"\\'")}')" style="font-size:12px;color:#bbb">✏️</button></div>`;}).join('')}
+    ${extraList.map((e,i)=>`<div class="doc-item ${e.checked?'checked':''}"><input type="checkbox" ${e.checked?'checked':''} onclick="toggleExtraDoc('${curSiteId}','${type}',${i})"><span style="flex:1;color:#2980b9">${e.name}</span><button class="btn-del" onclick="startEditBaseDoc('${type}','extra-${i}','${e.name.replace(/'/g,"\\'")}','${curSiteId}')" style="font-size:12px;color:#bbb">✏️</button><button class="btn-del" onclick="removeExtraDoc('${curSiteId}','${type}',${i})" style="font-size:12px">🗑</button></div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:10px"><input type="text" id="extra-doc-input-${type}" placeholder="추가 서류명" style="flex:1"><button class="btn btn-sm" style="background:#1a1a2e;color:#fff" onclick="addExtraDoc('${curSiteId}','${type}')">+ 추가</button></div>`;
 }
-
 window.toggleDoc=async function(siteId,type,idx){
   const s=sites.find(s=>s.id===siteId);if(!s)return;
   const key=type==='docs'?'contractDocs':'claimDocs';
-  const data={...(s[key]||{})};
-  data[idx]=!data[idx];
-  // 화면 먼저 업데이트
-  s[key]=data;
-  renderDocTab(type);
-  // Firebase 저장
-  try{await updateDoc(doc(db,'sites',siteId),{[key]:data});}catch(e){showToast('⚠️ 저장 실패 — Firebase 규칙을 확인하세요');}
+  const data={...(s[key]||{})};data[idx]=!data[idx];
+  s[key]=data;renderDocTab(type);
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:data});}catch(e){showToast('⚠️ Firebase 규칙 확인 필요');}
 }
-
 window.toggleExtraDoc=async function(siteId,type,idx){
   const s=sites.find(s=>s.id===siteId);if(!s)return;
   const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
-  const list=[...(s[key]||[])];
-  list[idx]={...list[idx],checked:!list[idx].checked};
-  // 화면 먼저 업데이트
-  s[key]=list;
-  renderDocTab(type);
-  // Firebase 저장
-  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});}catch(e){showToast('⚠️ 저장 실패 — Firebase 규칙을 확인하세요');}
+  const list=[...(s[key]||[])];list[idx]={...list[idx],checked:!list[idx].checked};
+  s[key]=list;renderDocTab(type);
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});}catch(e){}
 }
-
+window.startEditBaseDoc=function(type,idx,currentName,siteId){
+  const newName=prompt('서류 이름 수정:',currentName);if(!newName||newName===currentName)return;
+  if(String(idx).startsWith('extra-')){
+    const i=parseInt(idx.replace('extra-',''));
+    const s=sites.find(s=>s.id===siteId);if(!s)return;
+    const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
+    const list=[...(s[key]||[])];list[i]={...list[i],name:newName};
+    s[key]=list;renderDocTab(type);
+    updateDoc(doc(db,'sites',siteId),{[key]:list}).catch(()=>{});
+  }else{
+    if(type==='docs')CONTRACT_DOCS[idx]=newName;else CLAIM_DOCS[idx]=newName;
+    renderDocTab(type);
+  }
+  showToast('✅ 수정 완료');
+}
 window.addExtraDoc=async function(siteId,type){
   const inputEl=document.getElementById('extra-doc-input-'+type);
   const name=inputEl.value.trim();if(!name)return;
   const s=sites.find(s=>s.id===siteId);if(!s)return;
   const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
   const list=[...(s[key]||[]),{name,checked:false}];
-  await updateDoc(doc(db,'sites',siteId),{[key]:list});
-  inputEl.value='';
+  s[key]=list;renderDocTab(type);inputEl.value='';
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});}catch(e){}
 }
-
 window.removeExtraDoc=async function(siteId,type,idx){
   const s=sites.find(s=>s.id===siteId);if(!s)return;
   const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
-  const list=[...(s[key]||[])];
-  list.splice(idx,1);
-  await updateDoc(doc(db,'sites',siteId),{[key]:list});
+  const list=[...(s[key]||[])];list.splice(idx,1);
+  s[key]=list;renderDocTab(type);
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});}catch(e){}
 }
-
 function renderSiteLogTab(){
   const logEl=document.getElementById('site-tab-log');if(!logEl)return;
   const sl=logs.filter(l=>l.siteId===curSiteId).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -643,38 +870,20 @@ function renderSiteLogTab(){
     <div class="row2"><div class="field"><label>시작</label><input type="time" id="l-start" value="08:00"></div><div class="field"><label>종료</label><input type="time" id="l-end" value="17:00"></div></div>
     <div class="field"><label>작업내용 *</label><textarea id="l-work" placeholder="오늘 작업 내용"></textarea></div>
     <div class="field"><label>특이사항</label><input type="text" id="l-note"></div>
-    <button class="btn btn-primary" onclick="addLog()">➕ 일지 등록</button>
+    <button class="btn btn-primary" onclick="addLog()">➕ 등록</button>
     <div class="divider"></div>
     <div class="section-label">일지 ${sl.length}건</div>
-    ${sl.length?sl.map(l=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
-      <div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''}</span><button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button></div>
-      <div style="font-size:13px;font-weight:600;margin-top:2px">👷 ${l.workers||''}</div>
-      <div style="font-size:13px;color:#444;margin-top:2px">${l.work||''}</div>
-      ${l.note?`<div style="font-size:12px;color:#e67e22;margin-top:2px">⚠️ ${l.note}</div>`:''}
-    </div>`).join(''):'<div class="empty">일지 없음</div>'}`;
+    ${sl.length?sl.map(l=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0"><div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''}</span><button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button></div><div style="font-size:13px;font-weight:600;margin-top:2px">👷 ${l.workers||''}</div><div style="font-size:13px;color:#444;margin-top:2px">${l.work||''}</div>${l.note?`<div style="font-size:12px;color:#e67e22;margin-top:2px">⚠️ ${l.note}</div>`:''}</div>`).join(''):'<div class="empty">일지 없음</div>'}`;
 }
-
 window.addLog=async function(){
   const workers=document.getElementById('l-workers').value.trim();
   const work=document.getElementById('l-work').value.trim();
-  if(!workers||!work)return showToast('⚠️ 작업자와 작업내용을 입력하세요');
+  if(!workers||!work)return showToast('⚠️ 작업자와 작업내용 입력');
   await addDoc(collection(db,'logs'),{siteId:curSiteId,date:document.getElementById('l-date').value,workers,startTime:document.getElementById('l-start').value,endTime:document.getElementById('l-end').value,work,note:document.getElementById('l-note').value.trim(),createdAt:Date.now()});
   document.getElementById('l-workers').value='';document.getElementById('l-work').value='';document.getElementById('l-note').value='';
   showToast('✅ 일지 등록');
 }
-
-window.deleteLog=async function(id){await deleteDoc(doc(db,'logs',id));showToast('🗑️ 삭제');}
-
-window.submitLog=async function(){
-  const site=document.getElementById('w-site').value.trim();
-  const workers=document.getElementById('w-workers').value.trim();
-  const work=document.getElementById('w-work').value.trim();
-  if(!site||!workers||!work)return showToast('⚠️ 현장, 작업자, 작업내용은 필수');
-  const matched=sites.find(s=>(s.client+' - '+s.contract)===site||s.contract===site);
-  await addDoc(collection(db,'logs'),{siteId:matched?matched.id:'',siteName:site,date:document.getElementById('w-date').value,workers,startTime:document.getElementById('w-start').value,endTime:document.getElementById('w-end').value,work,note:document.getElementById('w-note').value.trim(),createdAt:Date.now()});
-  showToast('✅ 일지 제출 완료! 수고하셨습니다 👍');closeModal('worker-modal');
-}
-
+window.deleteLog=async function(id){await deleteDoc(doc(db,'logs',id));showToast('🗑️');}
 function renderSites(){
   const q=(document.getElementById('s-search')||{}).value||'';
   const filtered=q?sites.filter(s=>((s.client||'')+(s.contract||'')).includes(q)):sites;
@@ -682,144 +891,35 @@ function renderSites(){
   const ss=document.getElementById('site-stats');
   if(ss)ss.innerHTML=`<div class="stat"><div class="stat-n">${sites.length}</div><div class="stat-l">전체</div></div><div class="stat"><div class="stat-n">${active}</div><div class="stat-l">진행중</div></div>`;
   const el=document.getElementById('site-list');if(!el)return;
-  if(!filtered.length){el.innerHTML='<div class="empty">현장이 없습니다</div>';return;}
-  el.innerHTML=filtered.map(s=>{
-    const cd=s.contractDocs||{},cl=s.claimDocs||{};
-    const cp=Math.round(Object.values(cd).filter(v=>v).length/CONTRACT_DOCS.length*100);
-    return`<div class="list-item">
-      <div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div>
-      <div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')">
-        <div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div>
-        <div class="item-sub">${s.client} · 계약서류 ${cp}%</div>
-      </div>
-      <span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span>
-      <button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button>
-    </div>`;
-  }).join('');
+  if(!filtered.length){el.innerHTML='<div class="empty">현장 없음</div>';return;}
+  el.innerHTML=filtered.map(s=>`<div class="list-item"><div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span><button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button></div>`).join('');
 }
 
 // 결제
-window.addPay=async function(isPrepay){
-  const prefix=isPrepay?'pp':'p';
-  const vendor=document.getElementById(prefix+'-vendor').value.trim();
-  const amount=parseInt(document.getElementById(prefix+'-amount').value)||0;
-  if(!vendor||!amount)return showToast('⚠️ 거래처와 금액을 입력하세요');
-  let steps=[];
-  if(!isPrepay){
-    if(document.getElementById('chk-stmt').dataset.on==='1')steps.push('거래명세서');
-    if(document.getElementById('chk-tax').dataset.on==='1')steps.push('세금계산서');
-    if(document.getElementById('chk-confirm').dataset.on==='1')steps.push('확인');
-    if(document.getElementById('chk-send').dataset.on==='1')steps.push('송금');
-    if(!steps.length)return showToast('⚠️ 처리 항목을 하나 이상 선택하세요');
-  }
-  // 파일 업로드
-  let fileUrl='', fileType='', fileName='';
-  const fileInput=document.getElementById(prefix+'-file');
-  if(fileInput&&fileInput.files[0]){
-    const file=fileInput.files[0];
-    fileName=file.name;
-    fileType=file.type;
-    try{
-      if(!isPrepay){
-        document.getElementById('p-upload-progress').style.display='block';
-      }
-      showToast('📤 파일 업로드 중...');
-      const res=await uploadFile(file, pct=>{
-        if(!isPrepay){
-          document.getElementById('p-progress-bar').style.width=pct+'%';
-          document.getElementById('p-progress-text').textContent=pct+'% 업로드 중...';
-        }
-      });
-      fileUrl=res.secure_url;
-      showToast('✅ 업로드 완료!');
-    }catch(e){showToast('⚠️ 파일 업로드 실패, 텍스트만 저장');}
-    if(!isPrepay)document.getElementById('p-upload-progress').style.display='none';
-  }
-  // 품목 수집
-  let items = [];
-  if(!isPrepay) {
-    document.querySelectorAll('#pay-items .pay-item-row').forEach(row => {
-      const inputs = row.querySelectorAll('input');
-      const name = inputs[0].value.trim();
-      const amt = parseInt(inputs[1].value) || 0;
-      const site = inputs[2].value.trim();
-      if(name) items.push({name, amt, site, siteConfirmed: !!site});
-    });
-  }
-  await addDoc(collection(db,'pays'),{vendor,amount,siteKey:'',cat:document.getElementById(prefix+'-cat').value,memo:document.getElementById(prefix+'-memo').value.trim(),isPrepay:!!isPrepay,steps:isPrepay?['선송금','거래명세서','세금계산서']:steps,curStep:0,stepDates:{},fileUrl,fileType,fileName,items,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
-  ['vendor','amount','site','memo'].forEach(f=>{const el=document.getElementById(prefix+'-'+f);if(el)el.value='';});
-  if(!isPrepay){['chk-stmt','chk-tax','chk-confirm','chk-send'].forEach(id=>{
-    const el=document.getElementById(id);
-    el.dataset.on='0';el.style.background='#f8f8f8';el.style.borderColor='#e0e0e0';
-    el.querySelector('span:last-child').style.color='#888';
-  });}
-  closeModal(isPrepay?'prepay-modal':'pay-modal');
-  showToast('✅ 등록 완료');
-}
-
 window.openStepModal=function(id){
   const p=pays.find(p=>p.id===id);if(!p)return;
-  const steps=p.steps||[];
-  const cur=p.curStep||0;
-  const isDone=cur>=steps.length;
+  const steps=p.steps||[];const cur=p.curStep||0;const isDone=cur>=steps.length;
   const c=clients.find(c=>c.name===p.vendor);
   const ICONS={'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡'};
   const accountInfo=c&&c.account?`<div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px"><div style="font-weight:700;color:#1e8449;margin-bottom:4px">💳 이체 정보</div><div style="font-size:14px;font-weight:700">${c.bank||''} ${c.account||''}</div><div style="font-size:12px;color:#888">${c.holder||''}</div></div>`:'';
-  let stepsHtml='<div style="display:flex;align-items:center;gap:0;overflow-x:auto;padding:8px 0;margin-bottom:12px">';
+  let stepsHtml='<div style="display:flex;align-items:center;overflow-x:auto;padding:8px 0;margin-bottom:12px">';
   steps.forEach((s,i)=>{
     const state=i<cur?'done':i===cur?'active':'pending';
-    stepsHtml+=`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px">
-      <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid ${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#ddd'};background:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#f5f5f5'}">${state==='done'?'✓':ICONS[s]||'○'}</div>
-      <div style="font-size:10px;font-weight:${state==='active'?'700':'400'};color:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#bbb'};text-align:center;line-height:1.2">${s}</div>
-    </div>`;
+    stepsHtml+=`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px"><div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid ${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#ddd'};background:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#f5f5f5'};color:${state==='done'||state==='active'?'#fff':'#bbb'}">${state==='done'?'✓':ICONS[s]||'○'}</div><div style="font-size:10px;font-weight:${state==='active'?'700':'400'};color:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#bbb'};text-align:center">${s}</div></div>`;
     if(i<steps.length-1)stepsHtml+=`<div style="flex:1;height:2px;background:${i<cur?'#27ae60':'#eee'};min-width:10px;margin-bottom:18px"></div>`;
   });
   stepsHtml+='</div>';
   document.getElementById('step-modal-content').innerHTML=`
-    <div class="modal-title">${p.isPrepay?'⚡ 선송금':'💰 결제 처리'}<button class="modal-close" onclick="closeModal('step-modal')">×</button></div>
+    <div class="modal-title">${p.isPrepay?'⚡ 선송금':'💰 결제'}<button class="modal-close" onclick="closeModal('step-modal')">×</button></div>
     <div style="font-size:15px;font-weight:700;margin-bottom:2px">${p.vendor}</div>
     <div style="font-size:13px;color:#888;margin-bottom:12px">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.cat||''}</div>
     ${accountInfo}
-    ${p.fileUrl?`<div style="margin-bottom:12px">
-      <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">📎 첨부 파일</div>
-      ${p.fileType&&p.fileType.startsWith('image/')?
-        `<img src="${p.fileUrl}" style="width:100%;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:
-        `<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:8px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px;font-weight:600">📄 ${p.fileName||'파일 보기'} <span style="font-size:11px;color:#bbb">클릭해서 열기</span></a>`
-      }
-    </div>`:''}
+    ${p.fileUrl?`<div style="margin-bottom:12px">${p.fileType&&p.fileType.startsWith('image/')?`<img src="${p.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:`<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${p.fileName||'파일 보기'}</a>`}</div>`:''}
     ${stepsHtml}
-    ${p.items&&p.items.length?`<div style="margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">📋 품목 내역</div>
-      <div style="background:#f8f8f8;border-radius:8px;overflow:hidden">
-        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:0;background:#1a1a2e;padding:6px 10px">
-          <div style="font-size:11px;color:#fff;font-weight:600">품목</div>
-          <div style="font-size:11px;color:#fff;font-weight:600;text-align:right">금액</div>
-          <div style="font-size:11px;color:#fff;font-weight:600;text-align:center">현장명</div>
-        </div>
-        ${p.items.map((item,i)=>`<div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:0;padding:8px 10px;border-bottom:1px solid #f0f0f0;background:${item.siteConfirmed?'#f0fff4':'#fffdf0'}">
-          <div style="font-size:12px;color:#333">${item.name}</div>
-          <div style="font-size:12px;color:#333;text-align:right">${(item.amt||0).toLocaleString()}</div>
-          <div style="font-size:12px">
-            ${item.siteConfirmed?
-              `<span style="color:#27ae60;font-weight:600">${item.site}</span>`:
-              `<input type="text" value="${item.site||''}" placeholder="현장명 입력" 
-                style="width:100%;font-size:12px;padding:3px 6px;border:1.5px solid #f0d060;border-radius:4px;background:#fff9e6"
-                onchange="updatePayItem('${p.id}',${i},this.value)">`
-            }
-          </div>
-        </div>`).join('')}
-      </div>
-    </div>`:''}
-    ${!isDone?`<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center;margin-bottom:12px">
-      <div style="font-size:12px;color:#888;margin-bottom:4px">다음 처리</div>
-      <div style="font-size:16px;font-weight:700;color:#1a1a2e">${ICONS[steps[cur]]||''} ${steps[cur]}</div>
-    </div>
-    <button class="btn btn-primary" style="background:#27ae60" onclick="nextStep('${id}',${cur})">'${steps[cur]}' 처리 완료 ✅</button>`
-    :`<div style="background:#d5f5e3;border-radius:8px;padding:14px;text-align:center;margin-bottom:12px"><div style="font-size:16px;font-weight:700;color:#1e8449">🎉 모든 처리 완료!</div></div>`}
+    ${!isDone?`<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:12px;color:#888;margin-bottom:4px">다음 처리</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">${ICONS[steps[cur]]||''} ${steps[cur]}</div></div><button class="btn btn-primary" style="background:#27ae60" onclick="nextStep('${id}',${cur})">'${steps[cur]}' 처리 완료 ✅</button>`:`<div style="background:#d5f5e3;border-radius:8px;padding:14px;text-align:center;margin-bottom:12px"><div style="font-size:16px;font-weight:700;color:#1e8449">🎉 모든 처리 완료!</div></div>`}
     <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:8px" onclick="deletePay('${id}');closeModal('step-modal')">🗑️ 삭제</button>`;
   openModal('step-modal');
 }
-
 window.nextStep=async function(id,cur){
   const p=pays.find(p=>p.id===id);if(!p)return;
   const steps=p.steps||[];
@@ -827,12 +927,7 @@ window.nextStep=async function(id,cur){
   await updateDoc(doc(db,'pays',id),{curStep:cur+1,stepDates});
   showToast(`✅ '${steps[cur]}' 완료!`);closeModal('step-modal');
 }
-
-window.deletePay=async function(id){
-  if(!confirm('삭제할까요?'))return;
-  await deleteDoc(doc(db,'pays',id));showToast('🗑️ 삭제 완료');
-}
-
+window.deletePay=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'pays',id));showToast('🗑️');}
 function renderPays(){
   const filter=(document.getElementById('pay-filter')||{}).value||'all';
   let filtered=pays;
@@ -846,178 +941,47 @@ function renderPays(){
   if(!filtered.length){el.innerHTML='<div class="empty">결제 내역 없음</div>';return;}
   const ICONS={'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡'};
   el.innerHTML=filtered.map(p=>{
-    const steps=p.steps||[];
-    const cur=p.curStep||0;
-    const isDone=cur>=steps.length;
+    const steps=p.steps||[];const cur=p.curStep||0;const isDone=cur>=steps.length;
     return`<div class="pay-card ${isDone?'done-card':p.isPrepay?'urgent':''}" onclick="openStepModal('${p.id}')">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <div><div style="font-size:13px;font-weight:700">${p.isPrepay?'⚡ ':''}${p.vendor}</div><div style="font-size:12px;color:#888;margin-top:1px">${p.siteKey||'-'} · ${p.cat||''}</div></div>
-        <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${isDone?'#27ae60':p.isPrepay?'#e74c3c':'#1a1a2e'}">${(p.amount||0).toLocaleString()}원</div>
-        <span class="badge ${isDone?'b-ok':p.isPrepay?'b-red':'b-blue'}" style="margin-top:2px">${isDone?'완료':steps[cur]||''}</span></div>
+        <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${isDone?'#27ae60':p.isPrepay?'#e74c3c':'#1a1a2e'}">${(p.amount||0).toLocaleString()}원</div><span class="badge ${isDone?'b-ok':p.isPrepay?'b-red':'b-blue'}" style="margin-top:2px">${isDone?'완료':steps[cur]||''}</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-        ${steps.map((s,i)=>`<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${i<cur?'#d5f5e3':i===cur?'#1a1a2e':'#f0f0f0'};color:${i<cur?'#1e8449':i===cur?'#fff':'#bbb'};font-weight:${i===cur?'700':'400'}">${ICONS[s]||''} ${s}</span>${i<steps.length-1?'<span style="color:#ddd;font-size:10px">›</span>':''}`).join('')}
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
-        <div style="font-size:11px;color:#bbb">${p.date||''} ${p.memo?'· '+p.memo:''}</div>
-        ${p.fileUrl?`<span style="font-size:11px;color:#2980b9;font-weight:600">📎 첨부있음</span>`:''}
-        ${p.items&&p.items.some(i=>!i.siteConfirmed)?`<span style="font-size:11px;color:#e67e22;font-weight:600">⚠️ 현장명 미입력</span>`:''}
-      </div>
+      <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap">${steps.map((s,i)=>`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${i<cur?'#d5f5e3':i===cur?'#1a1a2e':'#f0f0f0'};color:${i<cur?'#1e8449':i===cur?'#fff':'#bbb'};font-weight:${i===cur?'700':'400'}">${ICONS[s]||''} ${s}</span>${i<steps.length-1?'<span style="color:#ddd;font-size:10px">›</span>':''}`).join('')}</div>
+      <div style="font-size:11px;color:#bbb;margin-top:6px">${p.date||''} ${p.memo?'· '+p.memo:''} ${p.fileUrl?'· 📎':''}</div>
     </div>`;
   }).join('');
 }
 
+// 대시보드
 function renderDash(){
   const active=sites.filter(s=>s.status==='진행중').length;
   const waitPay=pays.filter(p=>(p.curStep||0)<(p.steps||[]).length);
   const totalWait=waitPay.reduce((s,p)=>s+(p.amount||0),0);
+  const unconfirmedDocs=docs.filter(d=>!d.allConfirmed&&d.items&&d.items.length>0);
   const ds=document.getElementById('dash-stats');
   if(ds)ds.innerHTML=`<div class="stat"><div class="stat-n">${active}</div><div class="stat-l">진행중 현장</div></div><div class="stat"><div class="stat-n">${Math.round(totalWait/10000)}만</div><div class="stat-l">미결금액</div></div>`;
   const dSites=document.getElementById('dash-sites');
   if(dSites){
-    if(!sites.length){dSites.innerHTML='<div class="empty">현장을 먼저 등록하세요</div>';}
-    else{
-      const sd=sites.map(s=>{
-        const sp=pays.filter(p=>p.siteKey&&p.siteKey.includes(s.contract));
-        const total=sp.reduce((sum,p)=>sum+(p.amount||0),0);
-        const labor=sp.filter(p=>p.cat==='인건비').reduce((sum,p)=>sum+(p.amount||0),0);
-        const mat=sp.filter(p=>p.cat==='자재비').reduce((sum,p)=>sum+(p.amount||0),0);
-        return{s,total,labor,mat};
-      }).sort((a,b)=>b.total-a.total);
-      const maxT=Math.max(...sd.map(d=>d.total),1);
-      dSites.innerHTML=sd.map(({s,total,labor,mat})=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
-        <div style="display:flex;justify-content:space-between"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${s.contract}</div><div style="font-size:13px;font-weight:700">${total.toLocaleString()}원</div></div>
-        <div style="font-size:11px;color:#999">${s.client} · 인건비 ${Math.round(labor/10000)}만 · 자재비 ${Math.round(mat/10000)}만</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(total/maxT*100)}%"></div></div>
-      </div>`).join('');
-    }
+    const sd=sites.map(s=>{
+      const sp=pays.filter(p=>p.siteKey&&p.siteKey.includes(s.contract));
+      const total=sp.reduce((sum,p)=>sum+(p.amount||0),0);
+      const labor=sp.filter(p=>p.cat==='인건비').reduce((sum,p)=>sum+(p.amount||0),0);
+      const mat=sp.filter(p=>p.cat==='자재비').reduce((sum,p)=>sum+(p.amount||0),0);
+      return{s,total,labor,mat};
+    }).sort((a,b)=>b.total-a.total);
+    const maxT=Math.max(...sd.map(d=>d.total),1);
+    dSites.innerHTML=sd.length?sd.map(({s,total,labor,mat})=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0"><div style="display:flex;justify-content:space-between"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${s.contract}</div><div style="font-size:13px;font-weight:700">${total.toLocaleString()}원</div></div><div style="font-size:11px;color:#999">${s.client} · 인건비 ${Math.round(labor/10000)}만 · 자재비 ${Math.round(mat/10000)}만</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.round(total/maxT*100)}%"></div></div></div>`).join(''):'<div class="empty">현장을 먼저 등록하세요</div>';
   }
   const dPay=document.getElementById('dash-pay');
   if(dPay){
     const ICONS={'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡'};
-    dPay.innerHTML=waitPay.length?waitPay.slice(0,6).map(p=>`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;gap:8px" onclick="openStepModal('${p.id}')">
-      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${p.isPrepay?'⚡ ':''}${p.vendor}</div><div style="font-size:12px;color:#999">${p.siteKey||'-'} · 다음: <b>${ICONS[(p.steps||[])[p.curStep||0]]||''} ${(p.steps||[])[p.curStep||0]||''}</b></div></div>
-      <div style="font-size:13px;font-weight:700;color:${p.isPrepay?'#e74c3c':'#1a1a2e'};flex-shrink:0">${(p.amount||0).toLocaleString()}원</div>
-    </div>`).join(''):'<div class="empty">대기 중인 결제 없음</div>';
+    dPay.innerHTML=waitPay.length?waitPay.slice(0,5).map(p=>`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;gap:8px" onclick="openStepModal('${p.id}')"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${p.isPrepay?'⚡ ':''}${p.vendor}</div><div style="font-size:12px;color:#999">${p.siteKey||'-'} · 다음: <b>${ICONS[(p.steps||[])[p.curStep||0]]||''} ${(p.steps||[])[p.curStep||0]||''}</b></div></div><div style="font-size:13px;font-weight:700;color:${p.isPrepay?'#e74c3c':'#1a1a2e'};flex-shrink:0">${(p.amount||0).toLocaleString()}원</div></div>`).join(''):'<div class="empty">대기 없음</div>';
   }
-}
-
-
-// 결제 체크박스 토글
-window.toggleChk=function(el){
-  const on=el.dataset.on==='1';
-  if(on){
-    el.dataset.on='0';
-    el.style.background='#f8f8f8';
-    el.style.borderColor='#e0e0e0';
-    el.querySelector('span:last-child').style.color='#888';
-  }else{
-    el.dataset.on='1';
-    el.style.background='#e8f5e9';
-    el.style.borderColor='#27ae60';
-    el.querySelector('span:last-child').style.color='#1e8449';
+  const dUnconfirmed=document.getElementById('dash-unconfirmed');
+  if(dUnconfirmed){
+    dUnconfirmed.innerHTML=unconfirmedDocs.length?unconfirmedDocs.map(d=>`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${d.vendor}</div><div style="font-size:12px;color:#999">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div><span class="badge b-wait">현장명 대기</span></div>`).join(''):'<div class="empty">✅ 모두 확인 완료</div>';
   }
-}
-
-// 서류 이름 수정 (기본 서류)
-window.startEditBaseDoc=function(type,idx,currentName){
-  const newName=prompt('서류 이름 수정:', currentName);
-  if(!newName||newName===currentName)return;
-  // 메모리에서 업데이트
-  if(type==='docs') CONTRACT_DOCS[idx]=newName;
-  else CLAIM_DOCS[idx]=newName;
-  renderDocTab(type);
-  showToast('✅ 수정 완료 (이 기기에서만 적용)');
-}
-
-// 추가 서류 이름 수정
-window.startEditExtraDoc=async function(siteId,type,idx,currentName){
-  const newName=prompt('서류 이름 수정:', currentName);
-  if(!newName||newName===currentName)return;
-  const s=sites.find(s=>s.id===siteId);if(!s)return;
-  const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
-  const list=[...(s[key]||[])];
-  list[idx]={...list[idx],name:newName};
-  s[key]=list;
-  renderDocTab(type);
-  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});showToast('✅ 수정 완료');}
-  catch(e){showToast('⚠️ 저장 실패');}
-}
-
-
-
-
-
-window.updatePayItem = async function(payId, idx, siteValue) {
-  const p = pays.find(p=>p.id===payId); if(!p) return;
-  const items = [...(p.items||[])];
-  items[idx] = {...items[idx], site: siteValue, siteConfirmed: !!siteValue};
-  try {
-    await updateDoc(doc(db,'pays',payId), {items});
-    p.items = items;
-    showToast('✅ 현장명 저장!');
-    // 모달 새로고침
-    openStepModal(payId);
-  } catch(e) { showToast('⚠️ 저장 실패'); }
-}
-
-window.addPayItem = function() {
-  const container = document.getElementById('pay-items');
-  const row = document.createElement('div');
-  row.className = 'pay-item-row';
-  row.style = 'display:grid;grid-template-columns:1fr 80px 1fr 28px;gap:6px;align-items:center';
-  row.innerHTML = `
-    <input type="text" placeholder="날짜+품목명" style="font-size:12px">
-    <input type="number" placeholder="금액" style="font-size:12px">
-    <input type="text" placeholder="현장명 (현장팀 입력)" style="font-size:12px;background:#fff9e6;border-color:#f0d060" readonly onclick="this.removeAttribute('readonly');this.focus()">
-    <button onclick="this.closest('.pay-item-row').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:4px;color:#c0392b;font-size:14px">×</button>
-  `;
-  container.appendChild(row);
-}
-
-window.previewPayFile = function(input, prefix='p') {
-  const file = input.files[0]; if(!file) return;
-  const preview = document.getElementById(prefix+'-file-preview');
-  const area = document.getElementById(prefix+'-upload-area');
-  area.style.borderColor = '#27ae60';
-  area.style.color = '#27ae60';
-  area.innerHTML = '✅ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + 'MB)' +
-    `<input type="file" id="${prefix}-file" accept="image/*,.pdf" style="display:none" onchange="previewPayFile(this,'${prefix}')">`;
-  if(file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      preview.style.display = 'block';
-      preview.innerHTML = `<img src="${e.target.result}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee">`;
-    };
-    reader.readAsDataURL(file);
-  } else {
-    preview.style.display = 'block';
-    preview.innerHTML = `<div style="background:#f0f4ff;border-radius:8px;padding:10px;text-align:center;font-size:13px;color:#2980b9">📄 ${file.name}</div>`;
-  }
-}
-
-// Cloudinary 설정
-const CLOUD_NAME = 'djfvoxf2h';
-const UPLOAD_PRESET = 'totalsystem_unsigned';
-
-window.uploadFile = async function(file, onProgress) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', UPLOAD_PRESET);
-  formData.append('folder', 'totalsystem');
-  
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
-    xhr.upload.onprogress = e => { if(onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
-    xhr.onload = () => {
-      const res = JSON.parse(xhr.responseText);
-      if(res.secure_url) resolve(res);
-      else reject(res);
-    };
-    xhr.onerror = reject;
-    xhr.send(formData);
-  });
 }
 
 document.getElementById('w-date').value=new Date().toISOString().slice(0,10);
