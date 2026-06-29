@@ -233,12 +233,20 @@ textarea{resize:vertical;min-height:60px}
     <div class="field"><label>거래처 *</label>
       <div class="ac-wrap"><input type="text" id="p-vendor" placeholder="자동완성" oninput="acSearch(this.value,'p-vendor-ac','p-vendor','client')" autocomplete="off"><div class="ac-list" id="p-vendor-ac"></div></div>
     </div>
-    <div class="field"><label>현장/건명</label>
-      <div class="ac-wrap"><input type="text" id="p-site" placeholder="자동완성" oninput="acSearch(this.value,'p-site-ac','p-site','site')" autocomplete="off"><div class="ac-list" id="p-site-ac"></div></div>
-    </div>
     <div class="row2">
-      <div class="field"><label>금액 (원) *</label><input type="number" id="p-amount" placeholder="0"></div>
+      <div class="field"><label>총금액 (원) *</label><input type="number" id="p-amount" placeholder="0"></div>
       <div class="field"><label>비용항목</label><select id="p-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="외주비">외주비</option><option value="소모품비">소모품비</option><option value="비품비">비품비</option><option value="복리후생비">복리후생비</option><option value="교통비">교통비</option><option value="식대">식대</option><option value="통신비">통신비</option><option value="수도광열비">수도광열비</option><option value="보험료">보험료</option><option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option><option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option><option value="도서인쇄비">도서인쇄비</option><option value="차량유지비">차량유지비</option><option value="기타">기타</option></select></div>
+    </div>
+    <div class="field">
+      <label>품목 목록 (사무실팀 입력) <button class="btn btn-sm" style="background:#1a1a2e;color:#fff;font-size:11px;margin-left:8px" onclick="addPayItem()">+ 품목 추가</button></label>
+      <div id="pay-items" style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+        <div class="pay-item-row" style="display:grid;grid-template-columns:1fr 80px 1fr 28px;gap:6px;align-items:center">
+          <input type="text" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
+          <input type="number" placeholder="금액" style="font-size:12px">
+          <input type="text" placeholder="현장명 (현장팀 입력)" style="font-size:12px;background:#fff9e6;border-color:#f0d060" readonly onclick="this.removeAttribute('readonly');this.focus()">
+          <button onclick="this.closest('.pay-item-row').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:4px;color:#c0392b;font-size:14px">×</button>
+        </div>
+      </div>
     </div>
     <div class="field">
       <label>처리할 항목 선택 (누르면 선택)</label>
@@ -258,6 +266,18 @@ textarea{resize:vertical;min-height:60px}
       </div>
     </div>
     <div class="field"><label>메모</label><input type="text" id="p-memo"></div>
+    <div class="field">
+      <label>거래명세서/세금계산서 첨부 (사진 또는 PDF)</label>
+      <div id="p-upload-area" onclick="document.getElementById('p-file').click()" style="border:2px dashed #ddd;border-radius:8px;padding:14px;text-align:center;cursor:pointer;color:#bbb;font-size:13px;transition:all .15s">
+        📎 클릭해서 파일 선택 (사진/PDF)
+        <input type="file" id="p-file" accept="image/*,.pdf" style="display:none" onchange="previewPayFile(this)">
+      </div>
+      <div id="p-file-preview" style="display:none;margin-top:8px"></div>
+      <div id="p-upload-progress" style="display:none;margin-top:6px">
+        <div style="background:#f0f0f0;border-radius:4px;height:6px"><div id="p-progress-bar" style="background:#27ae60;height:6px;border-radius:4px;width:0%;transition:width .3s"></div></div>
+        <div id="p-progress-text" style="font-size:12px;color:#888;margin-top:4px;text-align:center">업로드 중...</div>
+      </div>
+    </div>
     <button class="btn btn-primary" onclick="addPay(false)">📨 등록</button>
   </div>
 </div>
@@ -278,6 +298,14 @@ textarea{resize:vertical;min-height:60px}
       <div class="field"><label>비용항목</label><select id="pp-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="외주비">외주비</option><option value="소모품비">소모품비</option><option value="비품비">비품비</option><option value="복리후생비">복리후생비</option><option value="교통비">교통비</option><option value="식대">식대</option><option value="통신비">통신비</option><option value="수도광열비">수도광열비</option><option value="보험료">보험료</option><option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option><option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option><option value="도서인쇄비">도서인쇄비</option><option value="차량유지비">차량유지비</option><option value="기타">기타</option></select></div>
     </div>
     <div class="field"><label>선송금 사유</label><input type="text" id="pp-memo" placeholder="사유 입력"></div>
+    <div class="field">
+      <label>관련 서류 첨부 (선택)</label>
+      <div id="pp-upload-area" onclick="document.getElementById('pp-file').click()" style="border:2px dashed #ddd;border-radius:8px;padding:14px;text-align:center;cursor:pointer;color:#bbb;font-size:13px">
+        📎 클릭해서 파일 선택
+        <input type="file" id="pp-file" accept="image/*,.pdf" style="display:none" onchange="previewPayFile(this,'pp')">
+      </div>
+      <div id="pp-file-preview" style="display:none;margin-top:8px"></div>
+    </div>
     <button class="btn btn-red" onclick="addPay(true)">⚡ 선송금 등록</button>
   </div>
 </div>
@@ -684,7 +712,41 @@ window.addPay=async function(isPrepay){
     if(document.getElementById('chk-send').dataset.on==='1')steps.push('송금');
     if(!steps.length)return showToast('⚠️ 처리 항목을 하나 이상 선택하세요');
   }
-  await addDoc(collection(db,'pays'),{vendor,amount,siteKey:document.getElementById(prefix+'-site').value.trim(),cat:document.getElementById(prefix+'-cat').value,memo:document.getElementById(prefix+'-memo').value.trim(),isPrepay:!!isPrepay,steps:isPrepay?['선송금','거래명세서','세금계산서']:steps,curStep:0,stepDates:{},createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  // 파일 업로드
+  let fileUrl='', fileType='', fileName='';
+  const fileInput=document.getElementById(prefix+'-file');
+  if(fileInput&&fileInput.files[0]){
+    const file=fileInput.files[0];
+    fileName=file.name;
+    fileType=file.type;
+    try{
+      if(!isPrepay){
+        document.getElementById('p-upload-progress').style.display='block';
+      }
+      showToast('📤 파일 업로드 중...');
+      const res=await uploadFile(file, pct=>{
+        if(!isPrepay){
+          document.getElementById('p-progress-bar').style.width=pct+'%';
+          document.getElementById('p-progress-text').textContent=pct+'% 업로드 중...';
+        }
+      });
+      fileUrl=res.secure_url;
+      showToast('✅ 업로드 완료!');
+    }catch(e){showToast('⚠️ 파일 업로드 실패, 텍스트만 저장');}
+    if(!isPrepay)document.getElementById('p-upload-progress').style.display='none';
+  }
+  // 품목 수집
+  let items = [];
+  if(!isPrepay) {
+    document.querySelectorAll('#pay-items .pay-item-row').forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const name = inputs[0].value.trim();
+      const amt = parseInt(inputs[1].value) || 0;
+      const site = inputs[2].value.trim();
+      if(name) items.push({name, amt, site, siteConfirmed: !!site});
+    });
+  }
+  await addDoc(collection(db,'pays'),{vendor,amount,siteKey:'',cat:document.getElementById(prefix+'-cat').value,memo:document.getElementById(prefix+'-memo').value.trim(),isPrepay:!!isPrepay,steps:isPrepay?['선송금','거래명세서','세금계산서']:steps,curStep:0,stepDates:{},fileUrl,fileType,fileName,items,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
   ['vendor','amount','site','memo'].forEach(f=>{const el=document.getElementById(prefix+'-'+f);if(el)el.value='';});
   if(!isPrepay){['chk-stmt','chk-tax','chk-confirm','chk-send'].forEach(id=>{
     const el=document.getElementById(id);
@@ -718,7 +780,36 @@ window.openStepModal=function(id){
     <div style="font-size:15px;font-weight:700;margin-bottom:2px">${p.vendor}</div>
     <div style="font-size:13px;color:#888;margin-bottom:12px">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.cat||''}</div>
     ${accountInfo}
+    ${p.fileUrl?`<div style="margin-bottom:12px">
+      <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:600">📎 첨부 파일</div>
+      ${p.fileType&&p.fileType.startsWith('image/')?
+        `<img src="${p.fileUrl}" style="width:100%;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:
+        `<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:8px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px;font-weight:600">📄 ${p.fileName||'파일 보기'} <span style="font-size:11px;color:#bbb">클릭해서 열기</span></a>`
+      }
+    </div>`:''}
     ${stepsHtml}
+    ${p.items&&p.items.length?`<div style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">📋 품목 내역</div>
+      <div style="background:#f8f8f8;border-radius:8px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:0;background:#1a1a2e;padding:6px 10px">
+          <div style="font-size:11px;color:#fff;font-weight:600">품목</div>
+          <div style="font-size:11px;color:#fff;font-weight:600;text-align:right">금액</div>
+          <div style="font-size:11px;color:#fff;font-weight:600;text-align:center">현장명</div>
+        </div>
+        ${p.items.map((item,i)=>`<div style="display:grid;grid-template-columns:1fr 70px 1fr;gap:0;padding:8px 10px;border-bottom:1px solid #f0f0f0;background:${item.siteConfirmed?'#f0fff4':'#fffdf0'}">
+          <div style="font-size:12px;color:#333">${item.name}</div>
+          <div style="font-size:12px;color:#333;text-align:right">${(item.amt||0).toLocaleString()}</div>
+          <div style="font-size:12px">
+            ${item.siteConfirmed?
+              `<span style="color:#27ae60;font-weight:600">${item.site}</span>`:
+              `<input type="text" value="${item.site||''}" placeholder="현장명 입력" 
+                style="width:100%;font-size:12px;padding:3px 6px;border:1.5px solid #f0d060;border-radius:4px;background:#fff9e6"
+                onchange="updatePayItem('${p.id}',${i},this.value)">`
+            }
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
     ${!isDone?`<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center;margin-bottom:12px">
       <div style="font-size:12px;color:#888;margin-bottom:4px">다음 처리</div>
       <div style="font-size:16px;font-weight:700;color:#1a1a2e">${ICONS[steps[cur]]||''} ${steps[cur]}</div>
@@ -767,7 +858,11 @@ function renderPays(){
       <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
         ${steps.map((s,i)=>`<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${i<cur?'#d5f5e3':i===cur?'#1a1a2e':'#f0f0f0'};color:${i<cur?'#1e8449':i===cur?'#fff':'#bbb'};font-weight:${i===cur?'700':'400'}">${ICONS[s]||''} ${s}</span>${i<steps.length-1?'<span style="color:#ddd;font-size:10px">›</span>':''}`).join('')}
       </div>
-      <div style="font-size:11px;color:#bbb;margin-top:6px">${p.date||''} ${p.memo?'· '+p.memo:''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+        <div style="font-size:11px;color:#bbb">${p.date||''} ${p.memo?'· '+p.memo:''}</div>
+        ${p.fileUrl?`<span style="font-size:11px;color:#2980b9;font-weight:600">📎 첨부있음</span>`:''}
+        ${p.items&&p.items.some(i=>!i.siteConfirmed)?`<span style="font-size:11px;color:#e67e22;font-weight:600">⚠️ 현장명 미입력</span>`:''}
+      </div>
     </div>`;
   }).join('');
 }
@@ -847,6 +942,82 @@ window.startEditExtraDoc=async function(siteId,type,idx,currentName){
   renderDocTab(type);
   try{await updateDoc(doc(db,'sites',siteId),{[key]:list});showToast('✅ 수정 완료');}
   catch(e){showToast('⚠️ 저장 실패');}
+}
+
+
+
+
+
+window.updatePayItem = async function(payId, idx, siteValue) {
+  const p = pays.find(p=>p.id===payId); if(!p) return;
+  const items = [...(p.items||[])];
+  items[idx] = {...items[idx], site: siteValue, siteConfirmed: !!siteValue};
+  try {
+    await updateDoc(doc(db,'pays',payId), {items});
+    p.items = items;
+    showToast('✅ 현장명 저장!');
+    // 모달 새로고침
+    openStepModal(payId);
+  } catch(e) { showToast('⚠️ 저장 실패'); }
+}
+
+window.addPayItem = function() {
+  const container = document.getElementById('pay-items');
+  const row = document.createElement('div');
+  row.className = 'pay-item-row';
+  row.style = 'display:grid;grid-template-columns:1fr 80px 1fr 28px;gap:6px;align-items:center';
+  row.innerHTML = `
+    <input type="text" placeholder="날짜+품목명" style="font-size:12px">
+    <input type="number" placeholder="금액" style="font-size:12px">
+    <input type="text" placeholder="현장명 (현장팀 입력)" style="font-size:12px;background:#fff9e6;border-color:#f0d060" readonly onclick="this.removeAttribute('readonly');this.focus()">
+    <button onclick="this.closest('.pay-item-row').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;padding:4px;color:#c0392b;font-size:14px">×</button>
+  `;
+  container.appendChild(row);
+}
+
+window.previewPayFile = function(input, prefix='p') {
+  const file = input.files[0]; if(!file) return;
+  const preview = document.getElementById(prefix+'-file-preview');
+  const area = document.getElementById(prefix+'-upload-area');
+  area.style.borderColor = '#27ae60';
+  area.style.color = '#27ae60';
+  area.innerHTML = '✅ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + 'MB)' +
+    `<input type="file" id="${prefix}-file" accept="image/*,.pdf" style="display:none" onchange="previewPayFile(this,'${prefix}')">`;
+  if(file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${e.target.result}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee">`;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.style.display = 'block';
+    preview.innerHTML = `<div style="background:#f0f4ff;border-radius:8px;padding:10px;text-align:center;font-size:13px;color:#2980b9">📄 ${file.name}</div>`;
+  }
+}
+
+// Cloudinary 설정
+const CLOUD_NAME = 'djfvoxf2h';
+const UPLOAD_PRESET = 'totalsystem_unsigned';
+
+window.uploadFile = async function(file, onProgress) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('folder', 'totalsystem');
+  
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
+    xhr.upload.onprogress = e => { if(onProgress) onProgress(Math.round(e.loaded/e.total*100)); };
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.responseText);
+      if(res.secure_url) resolve(res);
+      else reject(res);
+    };
+    xhr.onerror = reject;
+    xhr.send(formData);
+  });
 }
 
 document.getElementById('w-date').value=new Date().toISOString().slice(0,10);
