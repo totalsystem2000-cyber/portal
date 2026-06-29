@@ -238,15 +238,23 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="row2">
       <div class="field"><label>금액 (원) *</label><input type="number" id="p-amount" placeholder="0"></div>
-      <div class="field"><label>비용항목</label><select id="p-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="기타">기타</option></select></div>
+      <div class="field"><label>비용항목</label><select id="p-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="외주비">외주비</option><option value="소모품비">소모품비</option><option value="비품비">비품비</option><option value="복리후생비">복리후생비</option><option value="교통비">교통비</option><option value="식대">식대</option><option value="통신비">통신비</option><option value="수도광열비">수도광열비</option><option value="보험료">보험료</option><option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option><option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option><option value="도서인쇄비">도서인쇄비</option><option value="차량유지비">차량유지비</option><option value="기타">기타</option></select></div>
     </div>
     <div class="field">
-      <label>처리할 항목 선택 (해당하는 것만)</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;cursor:pointer"><input type="checkbox" id="chk-stmt" style="width:16px;height:16px;accent-color:#1a1a2e"> 거래명세서</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;cursor:pointer"><input type="checkbox" id="chk-tax" style="width:16px;height:16px;accent-color:#1a1a2e"> 세금계산서</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;cursor:pointer"><input type="checkbox" id="chk-confirm" style="width:16px;height:16px;accent-color:#1a1a2e"> 확인</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500;cursor:pointer"><input type="checkbox" id="chk-send" style="width:16px;height:16px;accent-color:#1a1a2e"> 송금</label>
+      <label>처리할 항목 선택 (누르면 선택)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <div id="chk-stmt" onclick="toggleChk(this)" data-val="거래명세서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
+          <span style="font-size:18px">📄</span><span style="font-size:13px;font-weight:600;color:#888">거래명세서</span>
+        </div>
+        <div id="chk-tax" onclick="toggleChk(this)" data-val="세금계산서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
+          <span style="font-size:18px">🧾</span><span style="font-size:13px;font-weight:600;color:#888">세금계산서</span>
+        </div>
+        <div id="chk-confirm" onclick="toggleChk(this)" data-val="확인" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
+          <span style="font-size:18px">✅</span><span style="font-size:13px;font-weight:600;color:#888">확인</span>
+        </div>
+        <div id="chk-send" onclick="toggleChk(this)" data-val="송금" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8;transition:all .15s">
+          <span style="font-size:18px">💸</span><span style="font-size:13px;font-weight:600;color:#888">송금</span>
+        </div>
       </div>
     </div>
     <div class="field"><label>메모</label><input type="text" id="p-memo"></div>
@@ -267,7 +275,7 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="row2">
       <div class="field"><label>금액 (원) *</label><input type="number" id="pp-amount" placeholder="0"></div>
-      <div class="field"><label>비용항목</label><select id="pp-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="기타">기타</option></select></div>
+      <div class="field"><label>비용항목</label><select id="pp-cat"><option value="자재비">자재비</option><option value="인건비">인건비</option><option value="장비비">장비비</option><option value="용역비">용역비</option><option value="임차비">임차비</option><option value="외주비">외주비</option><option value="소모품비">소모품비</option><option value="비품비">비품비</option><option value="복리후생비">복리후생비</option><option value="교통비">교통비</option><option value="식대">식대</option><option value="통신비">통신비</option><option value="수도광열비">수도광열비</option><option value="보험료">보험료</option><option value="수수료">수수료</option><option value="광고홍보비">광고홍보비</option><option value="접대비">접대비</option><option value="교육훈련비">교육훈련비</option><option value="도서인쇄비">도서인쇄비</option><option value="차량유지비">차량유지비</option><option value="기타">기타</option></select></div>
     </div>
     <div class="field"><label>선송금 사유</label><input type="text" id="pp-memo" placeholder="사유 입력"></div>
     <button class="btn btn-red" onclick="addPay(true)">⚡ 선송금 등록</button>
@@ -534,18 +542,19 @@ function renderDocTab(type){
     </div>
     <div class="progress-bar" style="margin-bottom:12px"><div class="progress-fill" style="width:${totalCnt?Math.round(checkedCnt/totalCnt*100):0}%"></div></div>
     <div class="doc-list">
-      ${baseList.map((doc,i)=>{
+      ${baseList.map((docName,i)=>{
         const checked=!!docData[i];
-        return`<div class="doc-item ${checked?'checked':''}" onclick="toggleDoc('${curSiteId}','${type}',${i})">
-          <input type="checkbox" ${checked?'checked':''} onclick="event.stopPropagation();toggleDoc('${curSiteId}','${type}',${i})">
-          <span class="doc-label">${doc}</span>
-          ${checked?'<span class="doc-date">✓</span>':''}
+        return`<div class="doc-item ${checked?'checked':''}">
+          <input type="checkbox" ${checked?'checked':''} onclick="toggleDoc('${curSiteId}','${type}',${i})">
+          <span class="doc-label" id="bl-${type}-${i}">${docName}</span>
+          <button class="btn-del" onclick="startEditBaseDoc('${type}',${i},'${docName.replace(/'/g,"\'")}')" style="font-size:12px;color:#bbb" title="수정">✏️</button>
         </div>`;
       }).join('')}
-      ${extraList.map((e,i)=>`<div class="doc-item ${e.checked?'checked':''}" onclick="toggleExtraDoc('${curSiteId}','${type}',${i})">
-        <input type="checkbox" ${e.checked?'checked':''} onclick="event.stopPropagation();toggleExtraDoc('${curSiteId}','${type}',${i})">
+      ${extraList.map((e,i)=>`<div class="doc-item ${e.checked?'checked':''}">
+        <input type="checkbox" ${e.checked?'checked':''} onclick="toggleExtraDoc('${curSiteId}','${type}',${i})">
         <span class="doc-label" style="color:#2980b9">${e.name} <span style="font-size:10px;color:#bbb">(추가)</span></span>
-        <button class="btn-del" onclick="event.stopPropagation();removeExtraDoc('${curSiteId}','${type}',${i})" style="font-size:12px">×</button>
+        <button class="btn-del" onclick="startEditExtraDoc('${curSiteId}','${type}',${i},'${e.name.replace(/'/g,"\'")}')" style="font-size:12px;color:#bbb" title="수정">✏️</button>
+        <button class="btn-del" onclick="removeExtraDoc('${curSiteId}','${type}',${i})" style="font-size:12px" title="삭제">🗑</button>
       </div>`).join('')}
     </div>
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -669,15 +678,19 @@ window.addPay=async function(isPrepay){
   if(!vendor||!amount)return showToast('⚠️ 거래처와 금액을 입력하세요');
   let steps=[];
   if(!isPrepay){
-    if(document.getElementById('chk-stmt').checked)steps.push('거래명세서');
-    if(document.getElementById('chk-tax').checked)steps.push('세금계산서');
-    if(document.getElementById('chk-confirm').checked)steps.push('확인');
-    if(document.getElementById('chk-send').checked)steps.push('송금');
+    if(document.getElementById('chk-stmt').dataset.on==='1')steps.push('거래명세서');
+    if(document.getElementById('chk-tax').dataset.on==='1')steps.push('세금계산서');
+    if(document.getElementById('chk-confirm').dataset.on==='1')steps.push('확인');
+    if(document.getElementById('chk-send').dataset.on==='1')steps.push('송금');
     if(!steps.length)return showToast('⚠️ 처리 항목을 하나 이상 선택하세요');
   }
   await addDoc(collection(db,'pays'),{vendor,amount,siteKey:document.getElementById(prefix+'-site').value.trim(),cat:document.getElementById(prefix+'-cat').value,memo:document.getElementById(prefix+'-memo').value.trim(),isPrepay:!!isPrepay,steps:isPrepay?['선송금','거래명세서','세금계산서']:steps,curStep:0,stepDates:{},createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
   ['vendor','amount','site','memo'].forEach(f=>{const el=document.getElementById(prefix+'-'+f);if(el)el.value='';});
-  if(!isPrepay){['chk-stmt','chk-tax','chk-confirm','chk-send'].forEach(id=>{document.getElementById(id).checked=false;});}
+  if(!isPrepay){['chk-stmt','chk-tax','chk-confirm','chk-send'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.dataset.on='0';el.style.background='#f8f8f8';el.style.borderColor='#e0e0e0';
+    el.querySelector('span:last-child').style.color='#888';
+  });}
   closeModal(isPrepay?'prepay-modal':'pay-modal');
   showToast('✅ 등록 완료');
 }
@@ -792,6 +805,48 @@ function renderDash(){
       <div style="font-size:13px;font-weight:700;color:${p.isPrepay?'#e74c3c':'#1a1a2e'};flex-shrink:0">${(p.amount||0).toLocaleString()}원</div>
     </div>`).join(''):'<div class="empty">대기 중인 결제 없음</div>';
   }
+}
+
+
+// 결제 체크박스 토글
+window.toggleChk=function(el){
+  const on=el.dataset.on==='1';
+  if(on){
+    el.dataset.on='0';
+    el.style.background='#f8f8f8';
+    el.style.borderColor='#e0e0e0';
+    el.querySelector('span:last-child').style.color='#888';
+  }else{
+    el.dataset.on='1';
+    el.style.background='#e8f5e9';
+    el.style.borderColor='#27ae60';
+    el.querySelector('span:last-child').style.color='#1e8449';
+  }
+}
+
+// 서류 이름 수정 (기본 서류)
+window.startEditBaseDoc=function(type,idx,currentName){
+  const newName=prompt('서류 이름 수정:', currentName);
+  if(!newName||newName===currentName)return;
+  // 메모리에서 업데이트
+  if(type==='docs') CONTRACT_DOCS[idx]=newName;
+  else CLAIM_DOCS[idx]=newName;
+  renderDocTab(type);
+  showToast('✅ 수정 완료 (이 기기에서만 적용)');
+}
+
+// 추가 서류 이름 수정
+window.startEditExtraDoc=async function(siteId,type,idx,currentName){
+  const newName=prompt('서류 이름 수정:', currentName);
+  if(!newName||newName===currentName)return;
+  const s=sites.find(s=>s.id===siteId);if(!s)return;
+  const key=type==='docs'?'extraContractDocs':'extraClaimDocs';
+  const list=[...(s[key]||[])];
+  list[idx]={...list[idx],name:newName};
+  s[key]=list;
+  renderDocTab(type);
+  try{await updateDoc(doc(db,'sites',siteId),{[key]:list});showToast('✅ 수정 완료');}
+  catch(e){showToast('⚠️ 저장 실패');}
 }
 
 document.getElementById('w-date').value=new Date().toISOString().slice(0,10);
