@@ -582,7 +582,7 @@ onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.dat
 window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 window.openModal=function(id){document.getElementById(id).style.display='block';document.body.style.overflow='hidden';}
 window.closeModal=function(id){document.getElementById(id).style.display='none';document.body.style.overflow='';}
-const PAY_TAB_PASSWORD = '1234';
+const PAY_TAB_PASSWORD = '2007';
 
 window.showTab=function(id,el){
   if(id==='pay' && sessionStorage.getItem('payTabUnlocked')!=='1'){
