@@ -210,7 +210,10 @@ textarea{resize:vertical;min-height:60px}
     <div class="field"><label>특이사항</label><input type="text" id="ql-note"></div>
     <button class="btn btn-primary" onclick="submitQuickLog()">➕ 일지 등록</button>
     <div class="divider"></div>
-    <div class="section-label">최근 일지</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="section-label" style="margin:0">최근 일지</div>
+      <button class="btn btn-sm btn-gray" onclick="exportLogsCSV()">📊 엑셀로 내보내기</button>
+    </div>
     <div id="site-recent-logs"><div class="loading">로딩 중...</div></div>
   </div>
 
@@ -1360,6 +1363,21 @@ window.exportPayCSV = function(){
   a.href = url; a.download = `결제내역_${new Date().toISOString().slice(0,10)}.csv`;
   a.click(); URL.revokeObjectURL(url);
   showToast('📊 CSV 다운로드 완료');
+}
+
+window.exportLogsCSV = function(){
+  const rows = [['날짜','현장명','작업자','시작시간','종료시간','작업내용','특이사항']];
+  [...logs].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(l=>{
+    const siteName = l.siteName || (sites.find(s=>s.id===l.siteId)||{}).contract || '';
+    rows.push([l.date||'', siteName, l.workers||'', l.startTime||'', l.endTime||'', l.work||'', l.note||'']);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `현장일지_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('📊 일지 CSV 다운로드 완료');
 }
 
 // 결제 상세 보기
