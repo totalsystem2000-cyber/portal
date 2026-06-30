@@ -164,6 +164,19 @@ textarea{resize:vertical;min-height:60px}
         <div class="ac-wrap"><input type="text" id="s-client" placeholder="거래처 자동완성" oninput="acSearch(this.value,'s-client-ac','s-client','client')" autocomplete="off"><div class="ac-list" id="s-client-ac"></div></div>
       </div>
       <div class="field"><label>건명 *</label><input type="text" id="s-contract" placeholder="예) 냉난방기 전열공사"></div>
+      <div class="field"><label>계약 사업자 *</label>
+        <select id="s-entity">
+          <option value="(주)토탈시스템">(주)토탈시스템</option>
+          <option value="익투스">익투스</option>
+          <option value="디자인플러스">디자인플러스</option>
+          <option value="(주)명가익스프레스">(주)명가익스프레스</option>
+          <option value="하나로기획">하나로기획</option>
+          <option value="명강이엔씨(주)">명강이엔씨(주)</option>
+          <option value="더본디자인(주)">더본디자인(주)</option>
+          <option value="(주)환경색채">(주)환경색채</option>
+          <option value="(주)유강이엔씨">(주)유강이엔씨</option>
+        </select>
+      </div>
       <div class="row2">
         <div class="field"><label>계약일</label><input type="date" id="s-contractdate"></div>
         <div class="field"><label>착공일</label><input type="date" id="s-start"></div>
@@ -1031,11 +1044,28 @@ function renderClients(){
 window.addSite=async function(){
   const client=document.getElementById('s-client').value.trim();
   const contract=document.getElementById('s-contract').value.trim();
+  const entity=document.getElementById('s-entity').value;
   if(!client||!contract)return showToast('⚠️ 발주처와 건명 입력');
-  await addDoc(collection(db,'sites'),{client,contract,contractDate:document.getElementById('s-contractdate').value,start:document.getElementById('s-start').value,end:document.getElementById('s-end').value,price:parseInt(document.getElementById('s-price').value)||0,status:document.getElementById('s-status').value,contractDocs:{},claimDocs:{},extraContractDocs:[],extraClaimDocs:[],createdAt:Date.now()});
+  await addDoc(collection(db,'sites'),{client,contract,entity,contractDate:document.getElementById('s-contractdate').value,start:document.getElementById('s-start').value,end:document.getElementById('s-end').value,price:parseInt(document.getElementById('s-price').value)||0,status:document.getElementById('s-status').value,contractDocs:{},claimDocs:{},extraContractDocs:[],extraClaimDocs:[],createdAt:Date.now()});
   ['s-client','s-contract','s-contractdate','s-start','s-end','s-price'].forEach(id=>document.getElementById(id).value='');
   showToast('✅ 현장 등록');
 }
+const ENTITY_LIST = ['(주)토탈시스템','익투스','디자인플러스','(주)명가익스프레스','하나로기획','명강이엔씨(주)','더본디자인(주)','(주)환경색채','(주)유강이엔씨'];
+
+window.editSiteEntity = async function(siteId){
+  const s = sites.find(s=>s.id===siteId); if(!s) return;
+  const listText = ENTITY_LIST.map((e,i)=>`${i+1}. ${e}`).join('\n');
+  const input = prompt(`계약 사업자 선택 (번호 입력):\n\n${listText}`, '');
+  if(input===null) return;
+  const idx = parseInt(input) - 1;
+  if(isNaN(idx) || idx<0 || idx>=ENTITY_LIST.length) return showToast('⚠️ 올바른 번호를 입력하세요');
+  try{
+    await updateDoc(doc(db,'sites',siteId), {entity: ENTITY_LIST[idx]});
+    showToast('✅ 사업자 변경 완료');
+    openSite(siteId);
+  }catch(e){ showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
+}
+
 window.deleteSite=async function(id){
   if(!confirm('삭제?'))return;
   await deleteDoc(doc(db,'sites',id));showToast('🗑️');
@@ -1048,7 +1078,9 @@ window.openSite=function(id){
   const mat=sp.filter(p=>p.cat==='자재비').reduce((sum,p)=>sum+(p.amount||0),0);
   document.getElementById('site-tab-info').innerHTML=`
     <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-      <div><div style="font-size:15px;font-weight:700">${s.contract}</div><div style="font-size:12px;color:#999">${s.client}</div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-top:6px">${s.status}</span></div>
+      <div><div style="font-size:15px;font-weight:700">${s.contract}</div><div style="font-size:12px;color:#999">${s.client}</div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}">${s.status}</span>${s.entity?`<span class="badge b-blue">🏢 ${s.entity}</span>`:''}</div></div>
+      <button class="btn btn-sm btn-gray" onclick="editSiteEntity('${id}')" style="font-size:11px">🏢 사업자 변경</button>
       <button class="btn-del" onclick="deleteSite('${id}');showView('site-list-view','site-detail-view')">🗑️</button>
     </div>
     ${[['계약일',s.contractDate],['착공일',s.start],['준공예정',s.end],['계약금액',s.price?s.price.toLocaleString()+'원':'']].filter(r=>r[1]).map(r=>`<div class="info-row"><div class="info-key">${r[0]}</div><div class="info-val">${r[1]}</div></div>`).join('')}
@@ -1162,7 +1194,7 @@ function renderSites(){
   if(ss)ss.innerHTML=`<div class="stat"><div class="stat-n">${sites.length}</div><div class="stat-l">전체</div></div><div class="stat"><div class="stat-n">${active}</div><div class="stat-l">진행중</div></div>`;
   const el=document.getElementById('site-list');if(!el)return;
   if(!filtered.length){el.innerHTML='<div class="empty">현장 없음</div>';return;}
-  el.innerHTML=filtered.map(s=>`<div class="list-item"><div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span><button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button></div>`).join('');
+  el.innerHTML=filtered.map(s=>`<div class="list-item"><div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}${s.entity?' · 🏢 '+s.entity:''}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span><button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button></div>`).join('');
 }
 
 // 결제
