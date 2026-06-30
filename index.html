@@ -250,6 +250,17 @@ textarea{resize:vertical;min-height:60px}
     </div>
 
     <div class="field">
+      <label>받은 서류 (해당하는 것 모두 선택, 나중에 추가 가능)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+        <div id="o-chk-stmt" onclick="toggleChk(this)" data-val="거래명세서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8">
+          <span style="font-size:18px">📄</span><span style="font-size:13px;font-weight:600;color:#888">거래명세서</span>
+        </div>
+        <div id="o-chk-tax" onclick="toggleChk(this)" data-val="세금계산서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8">
+          <span style="font-size:18px">🧾</span><span style="font-size:13px;font-weight:600;color:#888">세금계산서</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
       <label>사진/PDF 첨부</label>
       <div class="upload-area" onclick="document.getElementById('o-file').click()">
         📎 클릭해서 파일 선택 (사진 또는 PDF)
@@ -298,10 +309,6 @@ textarea{resize:vertical;min-height:60px}
   </div>
 
   <div class="card">
-    <div class="card-title">⚡ 현장팀 선송금 요청</div>
-    <div id="office-prepay-list"><div class="loading">로딩 중...</div></div>
-  </div>
-  <div class="card">
     <div class="card-title">📋 내가 등록한 서류 (현장팀에게 메일 보내기)</div>
     <div id="office-doc-list"><div class="loading">로딩 중...</div></div>
   </div>
@@ -347,13 +354,16 @@ textarea{resize:vertical;min-height:60px}
       <div class="field"><label>현장/건명</label>
         <div class="ac-wrap"><input type="text" id="f-site" placeholder="자동완성" oninput="acSearch(this.value,'f-site-ac','f-site','site')" autocomplete="off"><div class="ac-list" id="f-site-ac"></div></div>
       </div>
-      <div class="row2">
-        <div class="field"><label>금액 (원)</label><input type="number" id="f-amount" placeholder="0"></div>
-        <div class="field"><label>서류종류</label>
-          <select id="f-doctype">
-            <option value="거래명세서">거래명세서</option>
-            <option value="세금계산서">세금계산서</option>
-          </select>
+      <div class="field"><label>금액 (원)</label><input type="number" id="f-amount" placeholder="0"></div>
+      <div class="field">
+        <label>받은 서류 (해당하는 것 모두 선택)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+          <div id="f-chk-stmt" onclick="toggleChk(this)" data-val="거래명세서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8">
+            <span style="font-size:18px">📄</span><span style="font-size:13px;font-weight:600;color:#888">거래명세서</span>
+          </div>
+          <div id="f-chk-tax" onclick="toggleChk(this)" data-val="세금계산서" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;background:#f8f8f8">
+            <span style="font-size:18px">🧾</span><span style="font-size:13px;font-weight:600;color:#888">세금계산서</span>
+          </div>
         </div>
       </div>
       <div class="field"><label>메모</label><input type="text" id="f-memo" placeholder="메모"></div>
@@ -676,11 +686,29 @@ window.addOfficeItem=function(){
 }
 
 // 사무실 서류 등록
+window.toggleChk = function(el){
+  const on = el.dataset.on === '1';
+  if(on){
+    el.dataset.on='0'; el.style.background='#f8f8f8'; el.style.borderColor='#e0e0e0';
+    el.querySelector('span:last-child').style.color='#888';
+  }else{
+    el.dataset.on='1'; el.style.background='#e8f5e9'; el.style.borderColor='#27ae60';
+    el.querySelector('span:last-child').style.color='#1e8449';
+  }
+}
+window.resetChk = function(id){
+  const el = document.getElementById(id); if(!el) return;
+  el.dataset.on='0'; el.style.background='#f8f8f8'; el.style.borderColor='#e0e0e0';
+  el.querySelector('span:last-child').style.color='#888';
+}
+
 window.submitOfficeDoc=async function(){
   const vendor=document.getElementById('o-vendor').value.trim();
   const amount=parseInt(document.getElementById('o-amount').value)||0;
   if(!vendor||!amount)return showToast('⚠️ 거래처와 금액을 입력하세요');
   const items=[];
+  const hasStatement = document.getElementById('o-chk-stmt').dataset.on === '1';
+  const hasTax = document.getElementById('o-chk-tax').dataset.on === '1';
   // 파일 업로드
   let fileUrl='',fileType='',fileName='';
   const fileInput=document.getElementById('o-file');
@@ -692,9 +720,10 @@ window.submitOfficeDoc=async function(){
       document.getElementById('o-upload-progress').style.display='none';
     }catch(e){showToast('⚠️ 파일 업로드 실패');}
   }
-  await addDoc(collection(db,'docs'),{vendor,amount,cat:document.getElementById('o-cat').value,doctype:document.getElementById('o-doctype').value,memo:document.getElementById('o-memo').value.trim(),items,fileUrl,fileType,fileName,from:'office',allConfirmed:false,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  await addDoc(collection(db,'docs'),{vendor,amount,cat:document.getElementById('o-cat').value,doctype:document.getElementById('o-doctype').value,memo:document.getElementById('o-memo').value.trim(),items,fileUrl,fileType,fileName,from:'office',allConfirmed:false,hasStatement,hasTax,siteConfirmed:false,isPrepay:false,paid:false,createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
   ['o-vendor','o-amount','o-memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('o-file-preview').innerHTML='';
+  resetChk('o-chk-stmt'); resetChk('o-chk-tax');
 
   showToast('✅ 서류 등록 완료! 현장팀에게 메일 보내기 버튼을 눌러주세요');
 }
@@ -730,45 +759,30 @@ window.submitFieldDoc=async function(){
   const fAmount = parseInt(document.getElementById('f-amount').value)||0;
   const fSite = document.getElementById('f-site').value.trim();
   const fMemo = document.getElementById('f-memo').value.trim();
-  const fDoctype = document.getElementById('f-doctype').value;
+  const hasStatement = document.getElementById('f-chk-stmt').dataset.on === '1';
+  const hasTax = document.getElementById('f-chk-tax').dataset.on === '1';
+  const fDoctype = [hasStatement?'거래명세서':'', hasTax?'세금계산서':''].filter(Boolean).join('+') || '서류';
 
-  // docs 컬렉션에 저장
+  // docs 컬렉션에 저장 — 현장팀이 직접 올린 거니까 현장명은 이미 확정
   await addDoc(collection(db,'docs'),{
     vendor, amount:fAmount,
     cat:'', doctype:fDoctype,
     memo:fMemo,
-    items:[{name:'현장팀 전달 서류', amt:0, site:fSite, confirmed:!!fSite}],
+    items:[],
     fileUrl, fileType, fileName, from:'field',
+    hasStatement, hasTax, siteConfirmed:!!fSite, siteKey:fSite,
     allConfirmed:!!fSite,
-    isPrepay, createdAt:Date.now(), date:new Date().toLocaleDateString('ko-KR')
+    isPrepay, paid:false,
+    createdAt:Date.now(), date:new Date().toLocaleDateString('ko-KR')
   });
-  // 결제 탭에도 등록
   if(isPrepay){
-    // 선송금 → 사무실 탭에 표시, 확인 후 송금
-    await addDoc(collection(db,'pays'),{
-      vendor, amount:fAmount,
-      siteKey:fSite,
-      cat:'', memo:'⚡ 선송금 요청 — '+fMemo,
-      isPrepay:true, from:'field',
-      steps:['사무실 확인','송금'], curStep:0, stepDates:{},
-      fileUrl, fileType, fileName, items:[],
-      createdAt:Date.now(), date:new Date().toLocaleDateString('ko-KR')
-    });
-    showToast('⚡ 선송금 요청 완료! 사무실에게 메일 보내기 버튼을 눌러주세요');
+    showToast('⚡ 선송금 요청 완료! 결제현황에서 바로 송금 처리하세요');
   } else {
-    await addDoc(collection(db,'pays'),{
-      vendor, amount:fAmount,
-      siteKey:fSite,
-      cat:'', memo:fMemo,
-      isPrepay:false, from:'field',
-      steps:['송금'], curStep:0, stepDates:{},
-      fileUrl, fileType, fileName, items:[],
-      createdAt:Date.now(), date:new Date().toLocaleDateString('ko-KR')
-    });
     showToast('✅ 전달 완료! 사무실에게 메일 보내기 버튼을 눌러주세요');
   }
   ['f-vendor','f-amount','f-site','f-memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-file-preview').innerHTML='';
+  resetChk('f-chk-stmt'); resetChk('f-chk-tax');
   // 선송금 토글 초기화
   const tog = document.getElementById('f-prepay-toggle');
   tog.dataset.on='0'; tog.style.background='#f8f8f8'; tog.style.borderColor='#e0e0e0';
@@ -785,10 +799,10 @@ window.submitPrepay=async function(){
   if(fileInput&&fileInput.files[0]){
     try{const r=await uploadToCloud(fileInput.files[0],null,null);fileUrl=r.secure_url;fileType=fileInput.files[0].type;fileName=fileInput.files[0].name;}catch(e){}
   }
-  await addDoc(collection(db,'pays'),{vendor,amount,siteKey:document.getElementById('pp-site').value.trim(),cat:document.getElementById('pp-cat').value,memo:document.getElementById('pp-memo').value.trim(),isPrepay:true,steps:['선송금','거래명세서','세금계산서'],curStep:0,stepDates:{},fileUrl,fileType,fileName,items:[],createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
+  await addDoc(collection(db,'docs'),{vendor,amount,siteKey:document.getElementById('pp-site').value.trim(),cat:document.getElementById('pp-cat').value,memo:document.getElementById('pp-memo').value.trim(),doctype:'⚡ 선송금',from:'office',isPrepay:true,paid:false,fileUrl,fileType,fileName,items:[],createdAt:Date.now(),date:new Date().toLocaleDateString('ko-KR')});
   ['pp-vendor','pp-amount','pp-site','pp-memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pp-file-preview').innerHTML='';
-  showToast('✅ 선송금 등록 완료');
+  showToast('✅ 선송금 등록 완료! 결제현황에서 송금 처리하세요');
 }
 
 // 현장팀 서류 확인 - 현장명 입력
@@ -828,21 +842,6 @@ function renderFieldMyUploads(){
 }
 
 function renderOfficeDocs(){
-  // 선송금 요청 목록 (현장팀이 선송금 요청한 것)
-  const prepayEl=document.getElementById('office-prepay-list');
-  if(prepayEl){
-    const prepayDocs=docs.filter(d=>d.from==='field'&&d.isPrepay);
-    if(!prepayDocs.length){prepayEl.innerHTML='<div class="empty">선송금 요청 없음</div>';}
-    else prepayEl.innerHTML=prepayDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div><div style="font-size:13px;font-weight:700">⚡ ${d.vendor}</div>
-        <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
-        <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
-      </div>
-      ${d.fileUrl?`${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-top:8px;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px;margin-top:6px">📄 ${d.fileName||'파일 보기'}</a>`}`:''}
-      <div style="background:#fdebd0;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;color:#a04000;font-weight:600">⚡ 선송금 요청 — 결제현황에서 처리하세요</div>
-    </div>`).join('');
-  }
   const el=document.getElementById('office-doc-list');if(!el)return;
   const officeDocs=docs.filter(d=>d.from==='office');
   if(!officeDocs.length){el.innerHTML='<div class="empty">등록된 서류 없음</div>';return;}
@@ -853,13 +852,13 @@ function renderOfficeDocs(){
         <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
       </div>
       <div style="display:flex;gap:4px;align-items:center">
-        <span class="badge ${d.allConfirmed?'b-ok':'b-wait'}">${d.allConfirmed?'확인완료':'현장명 대기'}</span>
+        <span class="badge ${d.siteConfirmed?'b-ok':'b-wait'}">${d.siteConfirmed?'확인완료':'현장명 대기'}</span>
         <button class="btn btn-sm btn-gray" style="padding:3px 8px;font-size:11px" onclick="openEditDoc('${d.id}')">✏️</button>
         <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
       </div>
     </div>
     ${d.fileUrl?`<div style="margin-top:8px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
-    ${d.from==='office'&&!d.allConfirmed?`<button class="btn btn-sm" style="background:#2980b9;color:#fff;margin-top:8px;width:100%;justify-content:center" onclick="sendDocNotifyEmail('${d.id}')">📧 현장팀에게 메일 보내기</button>`:''}
+    ${d.from==='office'&&!d.siteConfirmed?`<button class="btn btn-sm" style="background:#2980b9;color:#fff;margin-top:8px;width:100%;justify-content:center" onclick="sendDocNotifyEmail('${d.id}')">📧 현장팀에게 메일 보내기</button>`:''}
   </div>`).join('');
 
   // 현장팀이 전달한 서류 (조회 전용, 메일 버튼 없음 — 현장팀 탭에서 발송)
@@ -1120,41 +1119,6 @@ function renderSites(){
 }
 
 // 결제
-window.openStepModal=function(id){
-  const p=pays.find(p=>p.id===id);if(!p)return;
-  const steps=p.steps||[];const cur=p.curStep||0;const isDone=cur>=steps.length;
-  const c=clients.find(c=>c.name===p.vendor);
-  const ICONS={'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡'};
-  const accountInfo=c&&c.account?`<div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px"><div style="font-weight:700;color:#1e8449;margin-bottom:4px">💳 이체 정보</div><div style="font-size:14px;font-weight:700">${c.bank||''} ${c.account||''}</div><div style="font-size:12px;color:#888">${c.holder||''}</div></div>`:'';
-  let stepsHtml='<div style="display:flex;align-items:center;overflow-x:auto;padding:8px 0;margin-bottom:12px">';
-  steps.forEach((s,i)=>{
-    const state=i<cur?'done':i===cur?'active':'pending';
-    stepsHtml+=`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px"><div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid ${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#ddd'};background:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#f5f5f5'};color:${state==='done'||state==='active'?'#fff':'#bbb'}">${state==='done'?'✓':ICONS[s]||'○'}</div><div style="font-size:10px;font-weight:${state==='active'?'700':'400'};color:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#bbb'};text-align:center">${s}</div></div>`;
-    if(i<steps.length-1)stepsHtml+=`<div style="flex:1;height:2px;background:${i<cur?'#27ae60':'#eee'};min-width:10px;margin-bottom:18px"></div>`;
-  });
-  stepsHtml+='</div>';
-  document.getElementById('step-modal-content').innerHTML=`
-    <div class="modal-title">${p.isPrepay?'⚡ 선송금':'💰 결제'}<button class="modal-close" onclick="closeModal('step-modal')">×</button></div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-      <div style="font-size:15px;font-weight:700">${p.vendor}</div>
-      ${p.from==='office'?'<span style="font-size:11px;background:#d6eaf8;color:#1a5276;padding:2px 8px;border-radius:10px;font-weight:600">사무실 등록</span>':p.from==='field'?'<span style="font-size:11px;background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-weight:600">현장팀 등록</span>':''}
-    </div>
-    <div style="font-size:13px;color:#888;margin-bottom:12px">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.cat||''}</div>
-    ${accountInfo}
-    ${p.fileUrl?`<div style="margin-bottom:12px">${p.fileType&&p.fileType.startsWith('image/')?`<img src="${p.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:`<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${p.fileName||'파일 보기'}</a>`}</div>`:''}
-    ${stepsHtml}
-    ${!isDone?`<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center;margin-bottom:12px"><div style="font-size:12px;color:#888;margin-bottom:4px">다음 처리</div><div style="font-size:16px;font-weight:700;color:#1a1a2e">${ICONS[steps[cur]]||''} ${steps[cur]}</div></div><button class="btn btn-primary" style="background:#27ae60" onclick="nextStep('${id}',${cur})">'${steps[cur]}' 처리 완료 ✅</button>`:`<div style="background:#d5f5e3;border-radius:8px;padding:14px;text-align:center;margin-bottom:12px"><div style="font-size:16px;font-weight:700;color:#1e8449">🎉 모든 처리 완료!</div></div>`}
-    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:8px" onclick="deletePay('${id}');closeModal('step-modal')">🗑️ 삭제</button>`;
-  openModal('step-modal');
-}
-window.nextStep=async function(id,cur){
-  const p=pays.find(p=>p.id===id);if(!p)return;
-  const steps=p.steps||[];
-  const stepDates={...(p.stepDates||{}),[steps[cur]]:new Date().toLocaleDateString('ko-KR')};
-  await updateDoc(doc(db,'pays',id),{curStep:cur+1,stepDates});
-  showToast(`✅ '${steps[cur]}' 완료!`);closeModal('step-modal');
-}
-window.deletePay=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'pays',id));showToast('🗑️');}
 function renderPays(){ renderPayDashboard(); }
 
 window.renderPayDashboard = function(){
@@ -1164,51 +1128,56 @@ window.renderPayDashboard = function(){
   const vendorQ = ((document.getElementById('pf-vendor')||{}).value||'').trim();
   const siteQ = ((document.getElementById('pf-site')||{}).value||'').trim();
 
-  function payStatus(p){
-    const steps=p.steps||[]; const cur=p.curStep||0;
-    if(cur>=steps.length) return '완료';
-    const curStepName = steps[cur]||'';
-    if(curStepName.includes('확인')) return '확인대기';
-    return '송금대기';
+  // 결제 대상: docs 중 선송금이거나 일반 서류인 것 (items만 있는 구식 데이터는 제외)
+  const payDocs = docs.filter(d=>!d.from || d.from==='office' || d.from==='field');
+
+  function isPayable(d){
+    if(d.paid) return false;
+    if(d.isPrepay) return true; // 선송금은 바로 가능
+    return !!d.hasStatement && !!d.hasTax && !!d.siteConfirmed;
+  }
+  function payStatus(d){
+    if(d.paid) return '완료';
+    if(isPayable(d)) return '송금대기';
+    return '확인대기';
   }
 
   const now = new Date();
-  function inPeriod(p){
+  function inPeriod(d){
     if(periodF==='all') return true;
-    const d = new Date(p.createdAt||0);
-    if(periodF==='month') return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+    const dt = new Date(d.createdAt||0);
+    if(periodF==='month') return dt.getFullYear()===now.getFullYear() && dt.getMonth()===now.getMonth();
     if(periodF==='lastmonth'){
       const lm = new Date(now.getFullYear(), now.getMonth()-1, 1);
-      return d.getFullYear()===lm.getFullYear() && d.getMonth()===lm.getMonth();
+      return dt.getFullYear()===lm.getFullYear() && dt.getMonth()===lm.getMonth();
     }
     return true;
   }
 
-  let filtered = pays.filter(p=>{
-    if(statusF!=='all' && payStatus(p)!==statusF) return false;
-    if(fromF!=='all' && p.from!==fromF) return false;
-    if(vendorQ && !(p.vendor||'').includes(vendorQ)) return false;
-    if(siteQ && !(p.siteKey||'').includes(siteQ)) return false;
-    if(!inPeriod(p)) return false;
+  let filtered = payDocs.filter(d=>{
+    if(statusF!=='all' && payStatus(d)!==statusF) return false;
+    if(fromF!=='all' && d.from!==fromF) return false;
+    if(vendorQ && !(d.vendor||'').includes(vendorQ)) return false;
+    if(siteQ && !(d.siteKey||'').includes(siteQ)) return false;
+    if(!inPeriod(d)) return false;
     return true;
   });
 
   // 요약 카드
-  const waitPay = pays.filter(p=>payStatus(p)!=='완료');
-  const confirmWait = pays.filter(p=>payStatus(p)==='확인대기');
-  const sendWait = pays.filter(p=>payStatus(p)==='송금대기');
-  const totalWait = waitPay.reduce((s,p)=>s+(p.amount||0),0);
+  const waitDocs = payDocs.filter(d=>payStatus(d)!=='완료');
+  const confirmWait = payDocs.filter(d=>payStatus(d)==='확인대기');
+  const sendWait = payDocs.filter(d=>payStatus(d)==='송금대기');
   const ss = document.getElementById('pay-summary-stats');
-  if(ss) ss.innerHTML = `<div class="stat"><div class="stat-n">${confirmWait.length}</div><div class="stat-l">현장팀 확인대기</div></div><div class="stat"><div class="stat-n">${sendWait.length}</div><div class="stat-l">송금대기</div></div>`;
+  if(ss) ss.innerHTML = `<div class="stat"><div class="stat-n">${confirmWait.length}</div><div class="stat-l">확인대기</div></div><div class="stat"><div class="stat-n">${sendWait.length}</div><div class="stat-l">송금대기</div></div>`;
 
-  // 이번달 총 지출
-  const monthTotal = pays.filter(p=>{const d=new Date(p.createdAt||0);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();}).reduce((s,p)=>s+(p.amount||0),0);
+  // 이번달 총 지출 (송금완료 기준)
+  const monthTotal = payDocs.filter(d=>{if(!d.paid)return false;const dt=new Date(d.paidAt||d.createdAt||0);return dt.getFullYear()===now.getFullYear()&&dt.getMonth()===now.getMonth();}).reduce((s,d)=>s+(d.amount||0),0);
   const mt = document.getElementById('pay-month-total');
   if(mt) mt.textContent = monthTotal.toLocaleString()+'원';
 
   // 거래처별 합계
   const byVendor = {};
-  filtered.forEach(p=>{ byVendor[p.vendor] = (byVendor[p.vendor]||0) + (p.amount||0); });
+  filtered.forEach(d=>{ byVendor[d.vendor] = (byVendor[d.vendor]||0) + (d.amount||0); });
   const vendorEl = document.getElementById('pay-by-vendor');
   if(vendorEl){
     const entries = Object.entries(byVendor).sort((a,b)=>b[1]-a[1]);
@@ -1217,7 +1186,7 @@ window.renderPayDashboard = function(){
 
   // 현장별 합계
   const bySite = {};
-  filtered.forEach(p=>{ const key=p.siteKey||'(현장 미입력)'; bySite[key] = (bySite[key]||0) + (p.amount||0); });
+  filtered.forEach(d=>{ const key=d.siteKey||'(현장 미입력)'; bySite[key] = (bySite[key]||0) + (d.amount||0); });
   const siteEl = document.getElementById('pay-by-site');
   if(siteEl){
     const entries = Object.entries(bySite).sort((a,b)=>b[1]-a[1]);
@@ -1229,35 +1198,60 @@ window.renderPayDashboard = function(){
   if(countEl) countEl.textContent = `(${filtered.length}건)`;
   const el = document.getElementById('pay-list'); if(!el) return;
   if(!filtered.length){ el.innerHTML = '<div class="empty">조건에 맞는 결제 내역 없음</div>'; return; }
-  const ICONS = {'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡','사무실 확인':'💼','현장팀 확인':'👷'};
-  el.innerHTML = filtered.map(p=>{
-    const steps=p.steps||[]; const cur=p.curStep||0; const isDone=cur>=steps.length;
-    const st = payStatus(p);
-    const stBadge = st==='완료'?'b-ok':st==='확인대기'?'b-orange':'b-blue';
-    return `<div class="pay-card ${isDone?'done-card':p.isPrepay?'urgent':''}" onclick="openPayDetail('${p.id}')">
+
+  // 정렬: 송금대기 먼저, 그 다음 확인대기, 마지막 완료
+  const sortOrder = {'송금대기':0, '확인대기':1, '완료':2};
+  filtered = [...filtered].sort((a,b)=> sortOrder[payStatus(a)] - sortOrder[payStatus(b)] || (b.createdAt||0)-(a.createdAt||0));
+
+  el.innerHTML = filtered.map(d=>{
+    const st = payStatus(d);
+    const payable = isPayable(d);
+    const stBadge = st==='완료'?'b-ok':st==='송금대기'?'b-blue':'b-wait';
+
+    let chipsHtml = '';
+    if(d.isPrepay){
+      chipsHtml = `<span class="badge b-red" style="font-size:11px">⚡ 선송금</span>`;
+    } else {
+      chipsHtml = `
+        <span style="font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasStatement?'#d5f5e3':'#f0f0f0'};color:${d.hasStatement?'#1e8449':'#bbb'};font-weight:${d.hasStatement?'700':'400'}">📄 거래명세서</span>
+        <span style="font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasTax?'#d5f5e3':'#f0f0f0'};color:${d.hasTax?'#1e8449':'#bbb'};font-weight:${d.hasTax?'700':'400'}">🧾 세금계산서</span>
+        <span style="font-size:11px;padding:3px 8px;border-radius:10px;background:${d.siteConfirmed?'#d5f5e3':'#f0f0f0'};color:${d.siteConfirmed?'#1e8449':'#bbb'};font-weight:${d.siteConfirmed?'700':'400'}">✅ 확인</span>
+      `;
+    }
+
+    return `<div class="pay-card ${st==='완료'?'done-card':payable?'urgent':''}" onclick="openPayDetail('${d.id}')">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <div>
           <div style="display:flex;align-items:center;gap:6px">
-            <div style="font-size:13px;font-weight:700">${p.isPrepay?'⚡ ':''}${p.vendor}</div>
-            ${p.from==='office'?'<span style="font-size:10px;background:#d6eaf8;color:#1a5276;padding:1px 6px;border-radius:10px;font-weight:600">사무실</span>':p.from==='field'?'<span style="font-size:10px;background:#d5f5e3;color:#1e8449;padding:1px 6px;border-radius:10px;font-weight:600">현장팀</span>':''}
+            <div style="font-size:13px;font-weight:700">${d.isPrepay?'⚡ ':''}${d.vendor}</div>
+            ${d.from==='office'?'<span style="font-size:10px;background:#d6eaf8;color:#1a5276;padding:1px 6px;border-radius:10px;font-weight:600">사무실</span>':d.from==='field'?'<span style="font-size:10px;background:#d5f5e3;color:#1e8449;padding:1px 6px;border-radius:10px;font-weight:600">현장팀</span>':''}
           </div>
-          <div style="font-size:12px;color:#888;margin-top:1px">${p.siteKey||'-'} · ${p.cat||''}</div>
+          <div style="font-size:12px;color:#888;margin-top:1px">${d.siteKey||'-'}</div>
         </div>
-        <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${isDone?'#27ae60':p.isPrepay?'#e74c3c':'#1a1a2e'}">${(p.amount||0).toLocaleString()}원</div><span class="badge ${stBadge}" style="margin-top:2px">${st}</span></div>
+        <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${st==='완료'?'#27ae60':payable?'#e67e22':'#1a1a2e'}">${(d.amount||0).toLocaleString()}원</div><span class="badge ${stBadge}" style="margin-top:2px">${st}</span></div>
       </div>
-      <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap">${steps.map((s,i)=>`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${i<cur?'#d5f5e3':i===cur?'#1a1a2e':'#f0f0f0'};color:${i<cur?'#1e8449':i===cur?'#fff':'#bbb'};font-weight:${i===cur?'700':'400'}">${ICONS[s]||''} ${s}</span>${i<steps.length-1?'<span style="color:#ddd;font-size:10px">›</span>':''}`).join('')}</div>
-      <div style="font-size:11px;color:#bbb;margin-top:6px">${p.date||''} ${p.memo?'· '+p.memo:''} ${p.fileUrl?'· 📎':''}</div>
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${chipsHtml}</div>
+      <div style="font-size:11px;color:#bbb;margin-top:6px">${d.date||''} ${d.memo?'· '+d.memo:''} ${d.fileUrl?'· 📎':''}</div>
+      ${payable&&st!=='완료'?`<button class="btn btn-primary" style="background:#e67e22;margin-top:8px" onclick="event.stopPropagation();markPaid('${d.id}')">💸 송금 완료 처리</button>`:''}
     </div>`;
   }).join('');
 }
 
+window.markPaid = async function(docId){
+  if(!confirm('송금 완료로 처리할까요?')) return;
+  try{
+    await updateDoc(doc(db,'docs',docId), {paid:true, paidAt:Date.now(), paidDate:new Date().toLocaleDateString('ko-KR')});
+    showToast('💸 송금 완료 처리됨');
+    closeModal('pay-detail-modal');
+  }catch(e){ showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
+}
+
 // CSV 내보내기
 window.exportPayCSV = function(){
-  const rows = [['날짜','거래처','금액','현장','비용항목','출처','상태','메모']];
-  pays.forEach(p=>{
-    const steps=p.steps||[]; const cur=p.curStep||0;
-    const status = cur>=steps.length?'완료':(steps[cur]||'').includes('확인')?'확인대기':'송금대기';
-    rows.push([p.date||'', p.vendor||'', p.amount||0, p.siteKey||'', p.cat||'', p.from==='office'?'사무실':'현장팀', status, p.memo||'']);
+  const rows = [['날짜','거래처','금액','현장','거래명세서','세금계산서','확인','상태','출처','메모']];
+  docs.filter(d=>!d.from || d.from==='office' || d.from==='field').forEach(d=>{
+    const status = d.paid?'완료':(d.isPrepay||(d.hasStatement&&d.hasTax&&d.siteConfirmed))?'송금대기':'확인대기';
+    rows.push([d.date||'', d.vendor||'', d.amount||0, d.siteKey||'', d.isPrepay?'-':(d.hasStatement?'O':'X'), d.isPrepay?'-':(d.hasTax?'O':'X'), d.isPrepay?'-':(d.siteConfirmed?'O':'X'), status, d.from==='office'?'사무실':'현장팀', d.memo||'']);
   });
   const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
@@ -1268,69 +1262,82 @@ window.exportPayCSV = function(){
   showToast('📊 CSV 다운로드 완료');
 }
 
-// 결제 상세 보기 (조회 전용)
+// 결제 상세 보기
 window.openPayDetail = function(id){
-  const p = pays.find(p=>p.id===id); if(!p) return;
-  const steps=p.steps||[]; const cur=p.curStep||0; const isDone=cur>=steps.length;
-  const c = clients.find(c=>c.name===p.vendor);
-  const ICONS = {'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡','사무실 확인':'💼','현장팀 확인':'👷'};
+  const d = docs.find(d=>d.id===id); if(!d) return;
+  const c = clients.find(c=>c.name===d.vendor);
   const accountInfo = c&&c.account?`<div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px"><div style="font-weight:700;color:#1e8449;margin-bottom:4px">💳 이체 정보</div><div style="font-size:14px;font-weight:700">${c.bank||''} ${c.account||''}</div><div style="font-size:12px;color:#888">${c.holder||''}</div></div>`:'';
-  let stepsHtml = '<div style="display:flex;align-items:center;overflow-x:auto;padding:8px 0;margin-bottom:12px">';
-  steps.forEach((s,i)=>{
-    const state = i<cur?'done':i===cur?'active':'pending';
-    stepsHtml += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px"><div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid ${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#ddd'};background:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#f5f5f5'};color:${state==='done'||state==='active'?'#fff':'#bbb'}">${state==='done'?'✓':ICONS[s]||'○'}</div><div style="font-size:10px;font-weight:${state==='active'?'700':'400'};color:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#bbb'};text-align:center">${s}</div></div>`;
-    if(i<steps.length-1) stepsHtml += `<div style="flex:1;height:2px;background:${i<cur?'#27ae60':'#eee'};min-width:10px;margin-bottom:18px"></div>`;
-  });
-  stepsHtml += '</div>';
-  const stepLog = Object.entries(p.stepDates||{}).map(([step,date])=>`<div style="font-size:12px;color:#888;padding:3px 0">✓ ${step} — ${date}</div>`).join('');
+
+  let checksHtml = '';
+  if(d.isPrepay){
+    checksHtml = `<div style="background:#fdebd0;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#a04000;font-weight:600">⚡ 선송금 — 서류 확인 없이 바로 송금 가능합니다</div>`;
+  } else {
+    checksHtml = `<div style="margin-bottom:12px">
+      <div class="section-label" style="margin-bottom:8px">처리 현황</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:${d.hasStatement?'#f0fff4':'#fafafa'}">
+          <span style="font-size:16px">${d.hasStatement?'✅':'⬜'}</span><span style="font-size:13px;font-weight:600">거래명세서</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:${d.hasTax?'#f0fff4':'#fafafa'}">
+          <span style="font-size:16px">${d.hasTax?'✅':'⬜'}</span><span style="font-size:13px;font-weight:600">세금계산서</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:${d.siteConfirmed?'#f0fff4':'#fafafa'}">
+          <span style="font-size:16px">${d.siteConfirmed?'✅':'⬜'}</span><span style="font-size:13px;font-weight:600">현장 확인 ${d.siteConfirmed?'— '+(d.siteKey||''):'(현장팀 탭에서 진행)'}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const payable = d.paid ? false : (d.isPrepay || (d.hasStatement && d.hasTax && d.siteConfirmed));
+
   document.getElementById('pay-detail-content').innerHTML = `
-    <div class="modal-title">📋 결제 상세 (조회)<button class="modal-close" onclick="closeModal('pay-detail-modal')">×</button></div>
+    <div class="modal-title">📋 결제 상세<button class="modal-close" onclick="closeModal('pay-detail-modal')">×</button></div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-      <div style="font-size:15px;font-weight:700">${p.vendor}</div>
-      ${p.from==='office'?'<span style="font-size:11px;background:#d6eaf8;color:#1a5276;padding:2px 8px;border-radius:10px;font-weight:600">사무실 등록</span>':p.from==='field'?'<span style="font-size:11px;background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-weight:600">현장팀 등록</span>':''}
+      <div style="font-size:15px;font-weight:700">${d.vendor}</div>
+      ${d.from==='office'?'<span style="font-size:11px;background:#d6eaf8;color:#1a5276;padding:2px 8px;border-radius:10px;font-weight:600">사무실 등록</span>':d.from==='field'?'<span style="font-size:11px;background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-weight:600">현장팀 등록</span>':''}
     </div>
-    <div style="font-size:13px;color:#888;margin-bottom:12px">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.cat||''}</div>
+    <div style="font-size:13px;color:#888;margin-bottom:12px">${d.siteKey||'-'} · ${(d.amount||0).toLocaleString()}원</div>
     ${accountInfo}
-    ${p.fileUrl?`<div style="margin-bottom:12px">${p.fileType&&p.fileType.startsWith('image/')?`<img src="${p.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:`<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${p.fileName||'파일 보기'}</a>`}</div>`:''}
-    ${stepsHtml}
-    ${stepLog?`<div style="background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:12px"><div class="section-label" style="margin-bottom:4px">처리 기록</div>${stepLog}</div>`:''}
-    <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px;font-size:12px;color:#2980b9;text-align:center">ℹ️ 처리는 사무실 탭 또는 현장팀 탭에서 진행해주세요</div>
-    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:10px" onclick="deletePay('${p.id}');closeModal('pay-detail-modal')">🗑️ 삭제</button>`;
+    ${d.fileUrl?`<div style="margin-bottom:12px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
+    ${checksHtml}
+    ${d.paid?`<div style="background:#d5f5e3;border-radius:8px;padding:14px;text-align:center;margin-bottom:12px"><div style="font-size:16px;font-weight:700;color:#1e8449">🎉 송금 완료</div><div style="font-size:12px;color:#666;margin-top:4px">${d.paidDate||''}</div></div>`
+      : payable?`<button class="btn btn-primary" style="background:#e67e22" onclick="markPaid('${d.id}')">💸 송금 완료 처리</button>`
+      :`<div style="background:#f0f4ff;border-radius:8px;padding:10px 12px;font-size:12px;color:#2980b9;text-align:center">ℹ️ 거래명세서/세금계산서/현장확인이 모두 끝나야 송금 가능합니다</div>`}
+    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:10px" onclick="deleteDoc('${d.id}');closeModal('pay-detail-modal')">🗑️ 삭제</button>`;
   openModal('pay-detail-modal');
 }
 
 // 대시보드
 function renderDash(){
   const active=sites.filter(s=>s.status==='진행중').length;
-  const waitPay=pays.filter(p=>(p.curStep||0)<(p.steps||[]).length);
-  const totalWait=waitPay.reduce((s,p)=>s+(p.amount||0),0);
-  const unconfirmedDocs=docs.filter(d=>!d.allConfirmed&&d.items&&d.items.length>0);
+  const payDocs = docs.filter(d=>!d.from || d.from==='office' || d.from==='field');
+  function isPayable(d){ if(d.paid) return false; if(d.isPrepay) return true; return !!d.hasStatement && !!d.hasTax && !!d.siteConfirmed; }
+  const waitDocs = payDocs.filter(d=>!d.paid);
+  const totalWait = waitDocs.reduce((s,d)=>s+(d.amount||0),0);
   const ds=document.getElementById('dash-stats');
   if(ds)ds.innerHTML=`<div class="stat"><div class="stat-n">${active}</div><div class="stat-l">진행중 현장</div></div><div class="stat"><div class="stat-n">${Math.round(totalWait/10000)}만</div><div class="stat-l">미결금액</div></div>`;
   const dSites=document.getElementById('dash-sites');
   if(dSites){
     const sd=sites.map(s=>{
-      const sp=pays.filter(p=>p.siteKey&&p.siteKey.includes(s.contract));
-      const total=sp.reduce((sum,p)=>sum+(p.amount||0),0);
-      const labor=sp.filter(p=>p.cat==='인건비').reduce((sum,p)=>sum+(p.amount||0),0);
-      const mat=sp.filter(p=>p.cat==='자재비').reduce((sum,p)=>sum+(p.amount||0),0);
-      return{s,total,labor,mat};
+      const sp=payDocs.filter(d=>d.siteKey&&d.siteKey.includes(s.contract));
+      const total=sp.reduce((sum,d)=>sum+(d.amount||0),0);
+      return{s,total};
     }).sort((a,b)=>b.total-a.total);
     const maxT=Math.max(...sd.map(d=>d.total),1);
-    dSites.innerHTML=sd.length?sd.map(({s,total,labor,mat})=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0"><div style="display:flex;justify-content:space-between"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${s.contract}</div><div style="font-size:13px;font-weight:700">${total.toLocaleString()}원</div></div><div style="font-size:11px;color:#999">${s.client} · 인건비 ${Math.round(labor/10000)}만 · 자재비 ${Math.round(mat/10000)}만</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.round(total/maxT*100)}%"></div></div></div>`).join(''):'<div class="empty">현장을 먼저 등록하세요</div>';
+    dSites.innerHTML=sd.length?sd.map(({s,total})=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0"><div style="display:flex;justify-content:space-between"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${s.contract}</div><div style="font-size:13px;font-weight:700">${total.toLocaleString()}원</div></div><div style="font-size:11px;color:#999">${s.client}</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.round(total/maxT*100)}%"></div></div></div>`).join(''):'<div class="empty">현장을 먼저 등록하세요</div>';
   }
   const dPay=document.getElementById('dash-pay');
   if(dPay){
-    const ICONS={'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡'};
-    dPay.innerHTML=waitPay.length?waitPay.slice(0,5).map(p=>`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;gap:8px" onclick="openStepModal('${p.id}')"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${p.isPrepay?'⚡ ':''}${p.vendor}</div><div style="font-size:12px;color:#999">${p.siteKey||'-'} · 다음: <b>${ICONS[(p.steps||[])[p.curStep||0]]||''} ${(p.steps||[])[p.curStep||0]||''}</b></div></div><div style="font-size:13px;font-weight:700;color:${p.isPrepay?'#e74c3c':'#1a1a2e'};flex-shrink:0">${(p.amount||0).toLocaleString()}원</div></div>`).join(''):'<div class="empty">대기 없음</div>';
+    const payable = waitDocs.filter(isPayable);
+    dPay.innerHTML=payable.length?payable.slice(0,5).map(d=>`<div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;gap:8px" onclick="openPayDetail('${d.id}')"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${d.isPrepay?'⚡ ':''}${d.vendor}</div><div style="font-size:12px;color:#999">${d.siteKey||'-'} · 송금대기</div></div><div style="font-size:13px;font-weight:700;color:#e67e22;flex-shrink:0">${(d.amount||0).toLocaleString()}원</div></div>`).join(''):'<div class="empty">대기 없음</div>';
   }
   const dUnconfirmed=document.getElementById('dash-unconfirmed');
   if(dUnconfirmed){
-    const officePending=pays.filter(p=>p.from==='office'&&(p.curStep||0)<(p.steps||[]).length);
-    const fieldPending=pays.filter(p=>p.from==='field'&&(p.curStep||0)<(p.steps||[]).length);
+    const officePending=payDocs.filter(d=>d.from==='office'&&!d.paid&&!isPayable(d));
+    const sendWait=payDocs.filter(d=>!d.paid&&isPayable(d));
     let html='';
-    if(officePending.length) html+=`<div style="font-size:11px;font-weight:700;color:#1a5276;margin-bottom:6px">💼 사무실 등록 — 현장팀 확인 필요 (${officePending.length}건)</div>`+officePending.map(p=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.vendor}</div><div style="font-size:12px;color:#999">${(p.amount||0).toLocaleString()}원 · ${p.date||''}</div></div><span class="badge b-blue">현장팀 확인</span></div>`).join('');
-    if(fieldPending.length) html+=`<div style="font-size:11px;font-weight:700;color:#1e8449;margin:8px 0 6px">👷 현장팀 등록 — 승인 대기 (${fieldPending.length}건)</div>`+fieldPending.map(p=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${p.vendor}</div><div style="font-size:12px;color:#999">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.date||''}</div></div><span class="badge b-ok">승인 대기</span></div>`).join('');
+    if(officePending.length) html+=`<div style="font-size:11px;font-weight:700;color:#1a5276;margin-bottom:6px">💼 사무실 등록 — 현장팀 확인 필요 (${officePending.length}건)</div>`+officePending.map(d=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${d.vendor}</div><div style="font-size:12px;color:#999">${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div><span class="badge b-blue">현장팀 확인</span></div>`).join('');
+    if(sendWait.length) html+=`<div style="font-size:11px;font-weight:700;color:#e67e22;margin:8px 0 6px">💸 송금 대기 (${sendWait.length}건)</div>`+sendWait.map(d=>`<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px"><div style="flex:1"><div style="font-size:13px;font-weight:600">${d.vendor}</div><div style="font-size:12px;color:#999">${d.siteKey||'-'} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div><span class="badge b-wait">송금대기</span></div>`).join('');
     dUnconfirmed.innerHTML=html||'<div class="empty">✅ 모두 처리 완료</div>';
   }
 }
@@ -1463,24 +1470,31 @@ function renderSiteRecentLogs() {
 
 // 현장팀 서류 확인 + 품목 입력
 function renderFieldDocs() {
-  const unconfirmed = docs.filter(d=>!d.allConfirmed);
-  const confirmed = docs.filter(d=>d.allConfirmed);
-  
+  // 현장팀이 처리할 건 사무실이 등록한 것만 (현장팀이 올린 건 이미 현장명 확정됨)
+  const officeDocs = docs.filter(d=>d.from==='office');
+  const unconfirmed = officeDocs.filter(d=>!d.siteConfirmed);
+  const confirmed = officeDocs.filter(d=>d.siteConfirmed);
+
   // 뱃지 업데이트
   const badge = document.getElementById('unconfirmed-badge');
   if(badge) badge.textContent = unconfirmed.length > 0 ? unconfirmed.length+'건' : '';
-  
+
   const ucEl = document.getElementById('field-confirm-list');
   const cEl = document.getElementById('field-confirmed-list');
   if(!ucEl||!cEl) return;
-  
+
   if(!unconfirmed.length){ucEl.innerHTML='<div class="empty">✅ 모두 처리 완료!</div>';}
-  else ucEl.innerHTML = unconfirmed.map(d=>`<div class="confirm-card" id="doc-card-${d.id}">
+  else ucEl.innerHTML = unconfirmed.map(d=>{
+    const hasItems = d.items && d.items.length > 0;
+    return `<div class="confirm-card" id="doc-card-${d.id}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
       <div>
         <div style="font-size:14px;font-weight:700">${d.vendor}</div>
-        <div style="font-size:12px;color:#888">${d.doctype||''} · <b>${(d.amount||0).toLocaleString()}원</b> · ${d.date||''}</div>
-        ${d.from==='field'?'<span class="badge b-ok" style="margin-top:4px;font-size:10px">현장팀 전달</span>':'<span class="badge b-blue" style="margin-top:4px;font-size:10px">사무실 등록</span>'}
+        <div style="font-size:12px;color:#888"><b>${(d.amount||0).toLocaleString()}원</b> · ${d.date||''}</div>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          ${d.hasStatement?'<span style="font-size:10px;background:#d5f5e3;color:#1e8449;padding:1px 6px;border-radius:8px">📄 거래명세서</span>':''}
+          ${d.hasTax?'<span style="font-size:10px;background:#d5f5e3;color:#1e8449;padding:1px 6px;border-radius:8px">🧾 세금계산서</span>':''}
+        </div>
       </div>
       <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
     </div>
@@ -1488,57 +1502,76 @@ function renderFieldDocs() {
       `<img src="${d.fileUrl}" style="width:100%;max-height:220px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:
       `<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${d.fileName||'파일 보기'} — 클릭해서 열기</a>`
     }</div>`:''}
-    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px">📋 품목 입력 (날짜, 품목명, 금액, 현장명):</div>
-    <div id="items-container-${d.id}">
-      ${(d.items||[]).map((item,i)=>`<div style="background:${item.confirmed?'#f0fff4':'#fffdf0'};border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid ${item.confirmed?'#a9dfbf':'#f0d060'}">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="font-size:13px;font-weight:600">${item.name}</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            ${item.confirmed?`<span style="color:#27ae60;font-size:12px;font-weight:700">✅ ${item.site}</span>`:''}
-            <button class="btn-del" onclick="editDocItem('${d.id}',${i})" title="수정" style="font-size:13px">✏️</button>
-            <button class="btn-del" onclick="removeDocItem('${d.id}',${i})" title="삭제" style="font-size:13px">🗑</button>
+
+    ${!hasItems?`<div style="margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">📍 현장명 입력</div>
+      <div class="ac-wrap">
+        <input type="text" id="simple-site-${d.id}" placeholder="현장명 입력" 
+          style="font-size:13px;background:#fff9e6;border-color:#f0d060"
+          oninput="acSearch(this.value,'simple-site-ac-${d.id}','simple-site-${d.id}','site')"
+          autocomplete="off">
+        <div class="ac-list" id="simple-site-ac-${d.id}"></div>
+      </div>
+      <button class="btn btn-sm btn-field" style="margin-top:6px;width:100%;justify-content:center" 
+        onclick="confirmSimpleSite('${d.id}')">✅ 확인 완료</button>
+      <button class="btn btn-sm btn-gray" style="margin-top:6px;width:100%;justify-content:center;font-size:11px" 
+        onclick="showMultiItemMode('${d.id}')">📋 한 서류에 여러 현장 건이 섞여있어요 (품목별로 나누기)</button>
+    </div>`:''}
+
+    <div id="items-mode-${d.id}" style="display:${hasItems?'block':'none'}">
+      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px">📋 품목별 현장명 (날짜, 품목명, 금액, 현장명):</div>
+      <div id="items-container-${d.id}">
+        ${(d.items||[]).map((item,i)=>`<div style="background:${item.confirmed?'#f0fff4':'#fffdf0'};border-radius:8px;padding:10px;margin-bottom:6px;border:1px solid ${item.confirmed?'#a9dfbf':'#f0d060'}">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13px;font-weight:600">${item.name}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              ${item.confirmed?`<span style="color:#27ae60;font-size:12px;font-weight:700">✅ ${item.site}</span>`:''}
+              <button class="btn-del" onclick="editDocItem('${d.id}',${i})" title="수정" style="font-size:13px">✏️</button>
+              <button class="btn-del" onclick="removeDocItem('${d.id}',${i})" title="삭제" style="font-size:13px">🗑</button>
+            </div>
           </div>
-        </div>
-        ${item.amt?`<div style="font-size:12px;color:#888">${item.amt.toLocaleString()}원</div>`:''}
-        ${!item.confirmed?`<div class="ac-wrap" style="margin-top:6px">
-          <input type="text" value="${(item.site||'').replace(/"/g,'&quot;')}" placeholder="현장명 입력 후 저장 버튼" 
-            style="font-size:12px;background:#fff9e6;border-color:#f0d060"
-            id="fc-input-${d.id}-${i}"
-            oninput="acSearch(this.value,'fc-ac-${d.id}-${i}','fc-input-${d.id}-${i}','site')"
-            autocomplete="off">
-          <div class="ac-list" id="fc-ac-${d.id}-${i}"></div>
-        </div>
-        <button class="btn btn-sm btn-field" style="margin-top:6px;width:100%;justify-content:center" 
-          onclick="confirmDocItem('${d.id}',${i},document.getElementById('fc-input-${d.id}-${i}').value)">✅ 저장</button>`:''}
-      </div>`).join('')}
-    </div>
-    <div style="border-top:1px solid #f0f0f0;padding-top:10px;margin-top:4px">
-      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">+ 새 품목 추가 (여러 개 입력 후 한번에 저장 가능):</div>
-      <div id="new-items-rows-${d.id}">
-        <div class="new-item-row">
-          <div style="display:grid;grid-template-columns:1fr 70px;gap:6px;margin-bottom:6px">
-            <input type="text" class="new-item-name" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
-            <input type="number" class="new-item-amt" placeholder="금액" style="font-size:12px">
-          </div>
-          <div class="ac-wrap" style="margin-bottom:6px;position:relative">
-            <input type="text" class="new-item-site" placeholder="현장명" 
+          ${item.amt?`<div style="font-size:12px;color:#888">${item.amt.toLocaleString()}원</div>`:''}
+          ${!item.confirmed?`<div class="ac-wrap" style="margin-top:6px">
+            <input type="text" value="${(item.site||'').replace(/"/g,'&quot;')}" placeholder="현장명 입력 후 저장 버튼" 
               style="font-size:12px;background:#fff9e6;border-color:#f0d060"
+              id="fc-input-${d.id}-${i}"
+              oninput="acSearch(this.value,'fc-ac-${d.id}-${i}','fc-input-${d.id}-${i}','site')"
               autocomplete="off">
+            <div class="ac-list" id="fc-ac-${d.id}-${i}"></div>
+          </div>
+          <button class="btn btn-sm btn-field" style="margin-top:6px;width:100%;justify-content:center" 
+            onclick="confirmDocItem('${d.id}',${i},document.getElementById('fc-input-${d.id}-${i}').value)">✅ 저장</button>`:''}
+        </div>`).join('')}
+      </div>
+      <div style="border-top:1px solid #f0f0f0;padding-top:10px;margin-top:4px">
+        <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">+ 새 품목 추가 (여러 개 입력 후 한번에 저장 가능):</div>
+        <div id="new-items-rows-${d.id}">
+          <div class="new-item-row">
+            <div style="display:grid;grid-template-columns:1fr 70px;gap:6px;margin-bottom:6px">
+              <input type="text" class="new-item-name" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
+              <input type="number" class="new-item-amt" placeholder="금액" style="font-size:12px">
+            </div>
+            <div class="ac-wrap" style="margin-bottom:6px;position:relative">
+              <input type="text" class="new-item-site" placeholder="현장명" 
+                style="font-size:12px;background:#fff9e6;border-color:#f0d060"
+                autocomplete="off">
+            </div>
           </div>
         </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-gray" style="flex:1;justify-content:center" onclick="addNewItemRow('${d.id}')">➕ 입력칸 추가</button>
+          <button class="btn btn-sm btn-field" style="flex:1;justify-content:center" onclick="addDocItem('${d.id}')">💾 전체 저장</button>
+        </div>
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-sm btn-gray" style="flex:1;justify-content:center" onclick="addNewItemRow('${d.id}')">➕ 입력칸 추가</button>
-        <button class="btn btn-sm btn-field" style="flex:1;justify-content:center" onclick="addDocItem('${d.id}')">💾 전체 저장</button>
-      </div>
+      ${d.items&&d.items.length>0&&d.items.every(i=>i.confirmed)?`<button class="btn btn-field" style="margin-top:8px" onclick="markAllConfirmed('${d.id}')">✅ 모두 확인 완료 처리</button>`:''}
     </div>
-    ${d.items&&d.items.length>0&&d.items.every(i=>i.confirmed)?`<button class="btn btn-field" style="margin-top:8px" onclick="markAllConfirmed('${d.id}')">✅ 모두 확인 완료 처리</button>`:''}
-  </div>`).join('');
+  </div>`;
+  }).join('');
 
   if(!confirmed.length){cEl.innerHTML='<div class="empty">없음</div>';}
   else cEl.innerHTML = confirmed.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div></div>
+      <div><div style="font-size:13px;font-weight:700">${d.vendor}</div><div style="font-size:12px;color:#888">${(d.amount||0).toLocaleString()}원 · ${d.date||''} · <b style="color:#27ae60">${d.siteKey||''}</b></div></div>
       <div style="display:flex;align-items:center;gap:6px"><span class="badge b-ok">완료</span><button class="btn-del" onclick="deleteDoc('${d.id}')" title="삭제">🗑</button></div>
     </div>
     ${(d.items||[]).map((item,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#555;margin-top:3px">
@@ -1546,6 +1579,23 @@ function renderFieldDocs() {
       <button class="btn-del" onclick="editDocItem('${d.id}',${i})" title="수정" style="font-size:12px">✏️</button>
     </div>`).join('')}
   </div>`).join('');
+}
+
+// 단일 현장 확인 (간단 모드)
+window.confirmSimpleSite = async function(docId){
+  const input = document.getElementById('simple-site-'+docId);
+  const site = input.value.trim();
+  if(!site) return showToast('⚠️ 현장명을 입력하세요');
+  try{
+    await updateDoc(doc(db,'docs',docId), {siteConfirmed:true, siteKey:site});
+    showToast('✅ 확인 완료!');
+  }catch(e){ showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
+}
+
+// 여러 현장 모드로 전환
+window.showMultiItemMode = function(docId){
+  const d = docs.find(d=>d.id===docId); if(!d) return;
+  document.getElementById('items-mode-'+docId).style.display = 'block';
 }
 
 // 새 입력칸 추가
@@ -1588,7 +1638,7 @@ window.addDocItem = async function(docId) {
 
 window.markAllConfirmed = async function(docId) {
   try {
-    await updateDoc(doc(db,'docs',docId), {allConfirmed:true});
+    await updateDoc(doc(db,'docs',docId), {allConfirmed:true, siteConfirmed:true});
     showToast('✅ 확인 완료!');
   } catch(e) { showToast('⚠️ 저장 실패'); }
 }
