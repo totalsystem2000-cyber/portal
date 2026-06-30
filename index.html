@@ -302,8 +302,12 @@ textarea{resize:vertical;min-height:60px}
     <div id="office-prepay-list"><div class="loading">로딩 중...</div></div>
   </div>
   <div class="card">
-    <div class="card-title">📋 등록한 서류 목록</div>
+    <div class="card-title">📋 내가 등록한 서류 (현장팀에게 메일 보내기)</div>
     <div id="office-doc-list"><div class="loading">로딩 중...</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📥 현장팀이 전달한 서류</div>
+    <div id="office-field-list"><div class="loading">로딩 중...</div></div>
   </div>
 </div>
 
@@ -546,16 +550,27 @@ const EMAILJS_PUBLIC_KEY = 'Af9_suhcVeuxt5Byf';
 const NOTIFY_FIELD_EMAILS = ['total4583@hanmail.net'];
 const NOTIFY_OFFICE_EMAILS = ['lyy020924@naver.com'];
 
-if(window.emailjs) window.emailjs.init(EMAILJS_PUBLIC_KEY);
+function ensureEmailJsInit(){
+  if(window.emailjs && !window.__emailjsInited){
+    window.emailjs.init(EMAILJS_PUBLIC_KEY);
+    window.__emailjsInited = true;
+  }
+}
 
 window.sendNotifyEmail = async function(params, target='field'){
-  if(!window.emailjs) return;
+  if(!window.emailjs){ showToast('⚠️ 이메일 기능 로딩 중입니다. 잠시 후 다시 시도해주세요'); return false; }
+  ensureEmailJsInit();
   const list = target==='office' ? NOTIFY_OFFICE_EMAILS : NOTIFY_FIELD_EMAILS;
+  let successCount = 0;
   for(const email of list){
     try{
       await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {...params, name:email, to_email:email});
-    }catch(e){console.error('이메일 발송 실패:', email, e);}
+      successCount++;
+    }catch(e){
+      console.error('이메일 발송 실패:', email, e);
+    }
   }
+  return successCount > 0;
 }
 
 let clients=[], sites=[], logs=[], pays=[], docs=[];
@@ -818,18 +833,16 @@ function renderOfficeDocs(){
       </div>
       ${d.fileUrl?`${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-top:8px;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px;margin-top:6px">📄 ${d.fileName||'파일 보기'}</a>`}`:''}
       <div style="background:#fdebd0;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;color:#a04000;font-weight:600">⚡ 선송금 요청 — 결제현황에서 처리하세요</div>
-      ${(d.curStep===undefined||!d.officeNotified)?`<button class="btn btn-sm" style="background:#a04000;color:#fff;margin-top:8px;width:100%;justify-content:center" onclick="sendOfficeNotifyEmail('${d.id}','prepay')">📧 사무실에게 메일 보내기</button>`:''}
     </div>`).join('');
   }
   const el=document.getElementById('office-doc-list');if(!el)return;
-  const officeDocs=docs.filter(d=>!(d.from==='field'&&d.isPrepay));
+  const officeDocs=docs.filter(d=>d.from==='office');
   if(!officeDocs.length){el.innerHTML='<div class="empty">등록된 서류 없음</div>';return;}
   el.innerHTML=officeDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
         <div style="font-size:13px;font-weight:700">${d.vendor}</div>
         <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
-        ${d.from==='field'?'<span class="badge b-ok" style="margin-top:4px">현장팀 전달</span>':''}
       </div>
       <div style="display:flex;gap:4px;align-items:center">
         <span class="badge ${d.allConfirmed?'b-ok':'b-wait'}">${d.allConfirmed?'확인완료':'현장명 대기'}</span>
@@ -839,8 +852,25 @@ function renderOfficeDocs(){
     </div>
     ${d.fileUrl?`<div style="margin-top:8px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
     ${d.from==='office'&&!d.allConfirmed?`<button class="btn btn-sm" style="background:#2980b9;color:#fff;margin-top:8px;width:100%;justify-content:center" onclick="sendDocNotifyEmail('${d.id}')">📧 현장팀에게 메일 보내기</button>`:''}
-    ${d.from==='field'&&!d.isPrepay?`<button class="btn btn-sm" style="background:#27ae60;color:#fff;margin-top:8px;width:100%;justify-content:center" onclick="sendOfficeNotifyEmail('${d.id}','normal')">📧 사무실에게 메일 보내기</button>`:''}
   </div>`).join('');
+
+  // 현장팀이 전달한 서류 (조회 전용, 메일 버튼 없음 — 현장팀 탭에서 발송)
+  const fieldEl=document.getElementById('office-field-list');
+  if(fieldEl){
+    const fieldDocs=docs.filter(d=>d.from==='field'&&!d.isPrepay);
+    if(!fieldDocs.length){fieldEl.innerHTML='<div class="empty">현장팀이 전달한 서류 없음</div>';}
+    else fieldEl.innerHTML=fieldDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:13px;font-weight:700">${d.vendor}</div>
+          <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
+          <span class="badge b-ok" style="margin-top:4px">현장팀 전달</span>
+        </div>
+        <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
+      </div>
+      ${d.fileUrl?`<div style="margin-top:8px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
+    </div>`).join('');
+  }
 }
 
 // renderFieldDocs moved above
@@ -1303,33 +1333,31 @@ function renderDash(){
 window.sendOfficeNotifyEmail = async function(docId, type){
   const d = docs.find(d=>d.id===docId); if(!d) return;
   showToast('📤 메일 발송 중...');
-  try{
-    await sendNotifyEmail({
-      vendor: d.vendor,
-      amount: (d.amount||0).toLocaleString(),
-      doctype: type==='prepay' ? '⚡ 선송금 요청' : (d.doctype||''),
-      date: d.date||'',
-      message: type==='prepay'
-        ? `${d.vendor} 거래처 선송금 요청 — 서류확인요청입니다. 사무실에서 확인 후 송금이 필요합니다.`
-        : `${d.vendor} 거래처 서류확인요청입니다. 현장팀이 직접 받아온 서류이니 사무실에서 확인 후 처리해주세요.`
-    }, 'office');
-    showToast('✅ 메일 발송 완료!');
-  }catch(e){ showToast('⚠️ 메일 발송 실패'); }
+  const ok = await sendNotifyEmail({
+    vendor: d.vendor,
+    amount: (d.amount||0).toLocaleString(),
+    doctype: type==='prepay' ? '⚡ 선송금 요청' : (d.doctype||''),
+    date: d.date||'',
+    message: type==='prepay'
+      ? `${d.vendor} 거래처 선송금 요청 — 서류확인요청입니다. 사무실에서 확인 후 송금이 필요합니다.`
+      : `${d.vendor} 거래처 서류확인요청입니다. 현장팀이 직접 받아온 서류이니 사무실에서 확인 후 처리해주세요.`
+  }, 'office');
+  if(ok) showToast('✅ 메일 발송 완료!');
+  else showToast('⚠️ 메일 발송 실패 — F12 콘솔 확인 필요');
 }
 
 window.sendDocNotifyEmail = async function(docId){
   const d = docs.find(d=>d.id===docId); if(!d) return;
   showToast('📤 메일 발송 중...');
-  try{
-    await sendNotifyEmail({
-      vendor: d.vendor,
-      amount: (d.amount||0).toLocaleString(),
-      doctype: d.doctype||'',
-      date: d.date||'',
-      message: `${d.vendor} 거래처 서류가 등록되었습니다. 현장팀 확인이 필요합니다.`
-    }, 'field');
-    showToast('✅ 메일 발송 완료!');
-  }catch(e){ showToast('⚠️ 메일 발송 실패'); }
+  const ok = await sendNotifyEmail({
+    vendor: d.vendor,
+    amount: (d.amount||0).toLocaleString(),
+    doctype: d.doctype||'',
+    date: d.date||'',
+    message: `${d.vendor} 거래처 서류가 등록되었습니다. 현장팀 확인이 필요합니다.`
+  }, 'field');
+  if(ok) showToast('✅ 메일 발송 완료!');
+  else showToast('⚠️ 메일 발송 실패 — F12 콘솔 확인 필요');
 }
 
 window.openEditDoc = function(id) {
@@ -1475,19 +1503,24 @@ function renderFieldDocs() {
       </div>`).join('')}
     </div>
     <div style="border-top:1px solid #f0f0f0;padding-top:10px;margin-top:4px">
-      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">+ 새 품목 추가:</div>
-      <div style="display:grid;grid-template-columns:1fr 70px;gap:6px;margin-bottom:6px">
-        <input type="text" id="new-item-name-${d.id}" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
-        <input type="number" id="new-item-amt-${d.id}" placeholder="금액" style="font-size:12px">
+      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">+ 새 품목 추가 (여러 개 입력 후 한번에 저장 가능):</div>
+      <div id="new-items-rows-${d.id}">
+        <div class="new-item-row">
+          <div style="display:grid;grid-template-columns:1fr 70px;gap:6px;margin-bottom:6px">
+            <input type="text" class="new-item-name" placeholder="날짜+품목명 (예: 06.11 5T투명각면)" style="font-size:12px">
+            <input type="number" class="new-item-amt" placeholder="금액" style="font-size:12px">
+          </div>
+          <div class="ac-wrap" style="margin-bottom:6px;position:relative">
+            <input type="text" class="new-item-site" placeholder="현장명" 
+              style="font-size:12px;background:#fff9e6;border-color:#f0d060"
+              autocomplete="off">
+          </div>
+        </div>
       </div>
-      <div class="ac-wrap" style="margin-bottom:6px">
-        <input type="text" id="new-item-site-${d.id}" placeholder="현장명" 
-          style="font-size:12px;background:#fff9e6;border-color:#f0d060"
-          oninput="acSearch(this.value,'new-item-ac-${d.id}','new-item-site-${d.id}','site')"
-          autocomplete="off">
-        <div class="ac-list" id="new-item-ac-${d.id}"></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-gray" style="flex:1;justify-content:center" onclick="addNewItemRow('${d.id}')">➕ 입력칸 추가</button>
+        <button class="btn btn-sm btn-field" style="flex:1;justify-content:center" onclick="addDocItem('${d.id}')">💾 전체 저장</button>
       </div>
-      <button class="btn btn-sm btn-field" style="width:100%;justify-content:center" onclick="addDocItem('${d.id}')">➕ 품목 추가</button>
     </div>
     ${d.items&&d.items.length>0&&d.items.every(i=>i.confirmed)?`<button class="btn btn-field" style="margin-top:8px" onclick="markAllConfirmed('${d.id}')">✅ 모두 확인 완료 처리</button>`:''}
   </div>`).join('');
@@ -1505,21 +1538,41 @@ function renderFieldDocs() {
   </div>`).join('');
 }
 
-// 품목 추가
+// 새 입력칸 추가
+window.addNewItemRow = function(docId) {
+  const container = document.getElementById('new-items-rows-'+docId);
+  const row = document.createElement('div');
+  row.className = 'new-item-row';
+  row.style = 'margin-top:6px;padding-top:6px;border-top:1px dashed #eee;position:relative';
+  row.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 70px 28px;gap:6px;margin-bottom:6px">
+      <input type="text" class="new-item-name" placeholder="날짜+품목명" style="font-size:12px">
+      <input type="number" class="new-item-amt" placeholder="금액" style="font-size:12px">
+      <button onclick="this.closest('.new-item-row').remove()" style="background:#fde8e8;border:none;border-radius:6px;cursor:pointer;color:#c0392b;font-size:13px">×</button>
+    </div>
+    <input type="text" class="new-item-site" placeholder="현장명" style="font-size:12px;background:#fff9e6;border-color:#f0d060" autocomplete="off">
+  `;
+  container.appendChild(row);
+}
+
+// 품목 일괄 추가
 window.addDocItem = async function(docId) {
-  const name = document.getElementById('new-item-name-'+docId).value.trim();
-  const amt = parseInt(document.getElementById('new-item-amt-'+docId).value)||0;
-  const site = document.getElementById('new-item-site-'+docId).value.trim();
-  if(!name) return showToast('⚠️ 품목명을 입력하세요');
+  const container = document.getElementById('new-items-rows-'+docId);
+  const rows = container.querySelectorAll('.new-item-row');
+  const newItems = [];
+  rows.forEach(row => {
+    const name = row.querySelector('.new-item-name').value.trim();
+    const amt = parseInt(row.querySelector('.new-item-amt').value)||0;
+    const site = row.querySelector('.new-item-site').value.trim();
+    if(name) newItems.push({name, amt, site, confirmed:!!site});
+  });
+  if(!newItems.length) return showToast('⚠️ 최소 1개 이상 품목명을 입력하세요');
   const d = docs.find(d=>d.id===docId); if(!d) return;
-  const items = [...(d.items||[]), {name, amt, site, confirmed:!!site}];
+  const items = [...(d.items||[]), ...newItems];
   const allConfirmed = items.every(i=>i.confirmed);
   try {
     await updateDoc(doc(db,'docs',docId), {items, allConfirmed});
-    document.getElementById('new-item-name-'+docId).value='';
-    document.getElementById('new-item-amt-'+docId).value='';
-    document.getElementById('new-item-site-'+docId).value='';
-    showToast('✅ 품목 추가!');
+    showToast(`✅ 품목 ${newItems.length}개 추가 완료!`);
   } catch(e) { showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
 }
 
