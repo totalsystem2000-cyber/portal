@@ -372,6 +372,10 @@ textarea{resize:vertical;min-height:60px}
       </div>
       <button class="btn btn-field" onclick="submitFieldDoc()">📤 사무실로 전달</button>
     </div>
+    <div class="card">
+      <div class="card-title">📋 내가 전달한 서류 (메일 보내기)</div>
+      <div id="field-my-uploads"><div class="loading">로딩 중...</div></div>
+    </div>
   </div>
 </div>
 
@@ -565,7 +569,7 @@ onSnapshot(collection(db,'clients'),snap=>{clients=snap.docs.map(d=>({id:d.id,..
 onSnapshot(collection(db,'sites'),snap=>{sites=snap.docs.map(d=>({id:d.id,...d.data()}));renderSites();renderDash();});
 onSnapshot(collection(db,'logs'),snap=>{logs=snap.docs.map(d=>({id:d.id,...d.data()}));renderRecentLogs();renderSiteRecentLogs();renderDash();});
 onSnapshot(collection(db,'pays'),snap=>{pays=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderPays();renderDash();});
-onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderOfficeDocs();renderFieldDocs();renderDash();});
+onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderOfficeDocs();renderFieldDocs();renderFieldMyUploads();renderDash();});
 
 // 유틸
 window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
@@ -585,6 +589,7 @@ window.showFieldTab=function(tab){
     if(btn){btn.style.background=tab===t?'#27ae60':'#f0f0f0';btn.style.color=tab===t?'#fff':'#555';}
   });
   if(tab==='docs')renderFieldDocs();
+  if(tab==='upload')renderFieldMyUploads();
 }
 window.showSiteTab=function(tab){
   ['info','docs','claim','log'].forEach(t=>{
@@ -782,6 +787,23 @@ window.deleteDoc=async function(id){
 }
 
 // 서류 렌더링
+function renderFieldMyUploads(){
+  const el = document.getElementById('field-my-uploads'); if(!el) return;
+  const myDocs = docs.filter(d=>d.from==='field').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,15);
+  if(!myDocs.length){ el.innerHTML = '<div class="empty">전달한 서류 없음</div>'; return; }
+  el.innerHTML = myDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:13px;font-weight:700">${d.isPrepay?'⚡ ':''}${d.vendor}</div>
+        <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
+      </div>
+      <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
+    </div>
+    ${d.fileUrl?`<div style="margin-top:6px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:130px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
+    <button class="btn btn-sm" style="background:#27ae60;color:#fff;margin-top:8px;width:100%;justify-content:center" onclick="sendOfficeNotifyEmail('${d.id}','${d.isPrepay?'prepay':'normal'}')">📧 사무실에게 메일 보내기</button>
+  </div>`).join('');
+}
+
 function renderOfficeDocs(){
   // 선송금 요청 목록 (현장팀이 선송금 요청한 것)
   const prepayEl=document.getElementById('office-prepay-list');
