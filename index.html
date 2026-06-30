@@ -403,7 +403,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="card-title">🔍 필터 및 검색</div>
     <div class="row2">
       <div class="field"><label>상태</label>
-        <select id="pf-status" onchange="renderPayDashboard()">
+        <select id="pf-status">
           <option value="all">전체</option>
           <option value="확인대기">현장팀 확인대기</option>
           <option value="송금대기">송금대기</option>
@@ -412,7 +412,7 @@ textarea{resize:vertical;min-height:60px}
         </select>
       </div>
       <div class="field"><label>출처</label>
-        <select id="pf-from" onchange="renderPayDashboard()">
+        <select id="pf-from">
           <option value="all">전체</option>
           <option value="office">사무실 등록</option>
           <option value="field">현장팀 등록</option>
@@ -421,16 +421,17 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="row2">
       <div class="field"><label>기간</label>
-        <select id="pf-period" onchange="renderPayDashboard()">
+        <select id="pf-period">
           <option value="all">전체 기간</option>
           <option value="month">이번달</option>
           <option value="lastmonth">지난달</option>
         </select>
       </div>
-      <div class="field"><label>거래처 검색</label><input type="text" id="pf-vendor" placeholder="거래처명" oninput="renderPayDashboard()"></div>
+      <div class="field"><label>거래처 검색</label><input type="text" id="pf-vendor" placeholder="거래처명" onkeydown="if(event.key==='Enter')renderPayDashboard()"></div>
     </div>
-    <div class="field"><label>현장명 검색</label><input type="text" id="pf-site" placeholder="현장명" oninput="renderPayDashboard()"></div>
-    <button class="btn btn-gray" onclick="exportPayCSV()" style="margin-top:4px">📊 엑셀로 내보내기 (CSV)</button>
+    <div class="field"><label>현장명 검색</label><input type="text" id="pf-site" placeholder="현장명" onkeydown="if(event.key==='Enter')renderPayDashboard()"></div>
+    <button class="btn btn-primary" onclick="renderPayDashboard()" style="margin-top:4px">🔍 검색</button>
+    <button class="btn btn-gray" onclick="exportPayCSV()" style="margin-top:6px">📊 엑셀로 내보내기 (CSV)</button>
   </div>
 
   <!-- 거래처별 합계 -->
@@ -821,8 +822,11 @@ window.confirmDocItem=async function(docId,idx,siteVal){
 
 // 서류 삭제
 window.deleteDoc=async function(id){
-  if(!confirm('삭제할까요?'))return;
-  await deleteDoc(doc(db,'docs',id));showToast('🗑️ 삭제');
+  if(!confirm('이 항목을 목록에서 숨길까요?\n(결제현황 기록에는 계속 남아있어요)'))return;
+  try{
+    await updateDoc(doc(db,'docs',id), {archived:true});
+    showToast('🗑️ 숨김 처리 완료 (결제현황엔 기록 유지)');
+  }catch(e){ showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
 }
 
 // 서류 렌더링
@@ -850,7 +854,7 @@ function renderOfficeDocs(){
   // 현장팀 선송금 요청 (빨리 송금해달라는 건)
   const prepayEl=document.getElementById('office-prepay-list');
   if(prepayEl){
-    const prepayDocs=docs.filter(d=>d.from==='field'&&d.isPrepay);
+    const prepayDocs=docs.filter(d=>d.from==='field'&&d.isPrepay&&!d.archived);
     if(!prepayDocs.length){prepayEl.innerHTML='<div class="empty">선송금 요청 없음</div>';}
     else prepayEl.innerHTML=prepayDocs.map(d=>{
       const payable = !d.paid;
@@ -874,7 +878,7 @@ function renderOfficeDocs(){
   }
 
   const el=document.getElementById('office-doc-list');if(!el)return;
-  const officeDocs=docs.filter(d=>d.from==='office');
+  const officeDocs=docs.filter(d=>d.from==='office'&&!d.archived);
   if(!officeDocs.length){el.innerHTML='<div class="empty">등록된 서류 없음</div>';return;}
   el.innerHTML=officeDocs.map(d=>{
     const payable = !d.paid && (d.isPrepay || (d.hasStatement && d.hasTax && d.siteConfirmed));
@@ -910,7 +914,7 @@ function renderOfficeDocs(){
   // 현장팀이 전달한 서류 (메일 버튼 없음 — 현장팀 탭에서 발송, 송금 버튼은 여기서)
   const fieldEl=document.getElementById('office-field-list');
   if(fieldEl){
-    const fieldDocs=docs.filter(d=>d.from==='field'&&!d.isPrepay);
+    const fieldDocs=docs.filter(d=>d.from==='field'&&!d.isPrepay&&!d.archived);
     if(!fieldDocs.length){fieldEl.innerHTML='<div class="empty">현장팀이 전달한 서류 없음</div>';}
     else fieldEl.innerHTML=fieldDocs.map(d=>{
       const payable = !d.paid && d.hasStatement && d.hasTax && d.siteConfirmed;
@@ -1402,7 +1406,7 @@ window.togglePayDocField = async function(docId, field){
 // 대시보드
 function renderDash(){
   const active=sites.filter(s=>s.status==='진행중').length;
-  const payDocs = docs.filter(d=>!d.from || d.from==='office' || d.from==='field');
+  const payDocs = docs.filter(d=>(!d.from || d.from==='office' || d.from==='field')&&!d.archived);
   function isPayable(d){ if(d.paid) return false; if(d.isPrepay) return true; return !!d.hasStatement && !!d.hasTax && !!d.siteConfirmed; }
   const waitDocs = payDocs.filter(d=>!d.paid);
   const totalWait = waitDocs.reduce((s,d)=>s+(d.amount||0),0);
@@ -1567,7 +1571,7 @@ function renderSiteRecentLogs() {
 // 현장팀 서류 확인 + 품목 입력
 function renderFieldDocs() {
   // 현장팀이 처리할 건 사무실이 등록한 것만 (현장팀이 올린 건 이미 현장명 확정됨)
-  const officeDocs = docs.filter(d=>d.from==='office');
+  const officeDocs = docs.filter(d=>d.from==='office'&&!d.archived);
   const unconfirmed = officeDocs.filter(d=>!d.siteConfirmed);
   const confirmed = officeDocs.filter(d=>d.siteConfirmed);
 
