@@ -1341,14 +1341,15 @@ function renderDash(){
 window.sendOfficeNotifyEmail = async function(docId, type){
   const d = docs.find(d=>d.id===docId); if(!d) return;
   showToast('📤 메일 발송 중...');
+  const photoLine = d.fileUrl ? `<br><br>📎 <a href="${d.fileUrl}" target="_blank">사진/서류 보기</a>` : '';
   const ok = await sendNotifyEmail({
     vendor: d.vendor,
     amount: (d.amount||0).toLocaleString(),
     doctype: type==='prepay' ? '⚡ 선송금 요청' : (d.doctype||''),
     date: d.date||'',
-    message: type==='prepay'
+    message: (type==='prepay'
       ? `${d.vendor} 거래처 선송금 요청 — 서류확인요청입니다. 사무실에서 확인 후 송금이 필요합니다.`
-      : `${d.vendor} 거래처 서류확인요청입니다. 현장팀이 직접 받아온 서류이니 사무실에서 확인 후 처리해주세요.`
+      : `${d.vendor} 거래처 서류확인요청입니다. 현장팀이 직접 받아온 서류이니 사무실에서 확인 후 처리해주세요.`) + photoLine
   }, 'office');
   if(ok) showToast('✅ 메일 발송 완료!');
   else showToast('⚠️ 메일 발송 실패 — F12 콘솔 확인 필요');
@@ -1357,12 +1358,13 @@ window.sendOfficeNotifyEmail = async function(docId, type){
 window.sendDocNotifyEmail = async function(docId){
   const d = docs.find(d=>d.id===docId); if(!d) return;
   showToast('📤 메일 발송 중...');
+  const photoLine = d.fileUrl ? `<br><br>📎 <a href="${d.fileUrl}" target="_blank">사진/서류 보기</a>` : '';
   const ok = await sendNotifyEmail({
     vendor: d.vendor,
     amount: (d.amount||0).toLocaleString(),
     doctype: d.doctype||'',
     date: d.date||'',
-    message: `${d.vendor} 거래처 서류가 등록되었습니다. 현장팀 확인이 필요합니다.`
+    message: `${d.vendor} 거래처 서류가 등록되었습니다. 현장팀 확인이 필요합니다.` + photoLine
   }, 'field');
   if(ok) showToast('✅ 메일 발송 완료!');
   else showToast('⚠️ 메일 발송 실패 — F12 콘솔 확인 필요');
