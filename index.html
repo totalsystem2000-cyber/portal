@@ -377,15 +377,71 @@ textarea{resize:vertical;min-height:60px}
 
 <!-- 결제 탭 -->
 <div id="pay" class="page">
-  <div class="stat-grid" id="pay-stats"></div>
-  <div style="display:flex;gap:6px;margin-bottom:10px">
-    <select id="pay-filter" onchange="renderPays()" style="flex:1;font-size:12px">
-      <option value="all">전체</option>
-      <option value="진행">진행중</option>
-      <option value="완료">완료</option>
-    </select>
+  <!-- 요약 카드 -->
+  <div class="stat-grid" id="pay-summary-stats"></div>
+  <div class="card" style="padding:12px 14px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="section-label" style="margin:0">📅 이번달 지출</div>
+      <div style="font-size:18px;font-weight:700;color:#1a1a2e" id="pay-month-total">0원</div>
+    </div>
   </div>
-  <div id="pay-list"><div class="loading">로딩 중...</div></div>
+
+  <!-- 필터 -->
+  <div class="card">
+    <div class="card-title">🔍 필터 및 검색</div>
+    <div class="row2">
+      <div class="field"><label>상태</label>
+        <select id="pf-status" onchange="renderPayDashboard()">
+          <option value="all">전체</option>
+          <option value="확인대기">현장팀 확인대기</option>
+          <option value="송금대기">송금대기</option>
+          <option value="완료">송금완료</option>
+        </select>
+      </div>
+      <div class="field"><label>출처</label>
+        <select id="pf-from" onchange="renderPayDashboard()">
+          <option value="all">전체</option>
+          <option value="office">사무실 등록</option>
+          <option value="field">현장팀 등록</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>기간</label>
+        <select id="pf-period" onchange="renderPayDashboard()">
+          <option value="all">전체 기간</option>
+          <option value="month">이번달</option>
+          <option value="lastmonth">지난달</option>
+        </select>
+      </div>
+      <div class="field"><label>거래처 검색</label><input type="text" id="pf-vendor" placeholder="거래처명" oninput="renderPayDashboard()"></div>
+    </div>
+    <div class="field"><label>현장명 검색</label><input type="text" id="pf-site" placeholder="현장명" oninput="renderPayDashboard()"></div>
+    <button class="btn btn-gray" onclick="exportPayCSV()" style="margin-top:4px">📊 엑셀로 내보내기 (CSV)</button>
+  </div>
+
+  <!-- 거래처별 합계 -->
+  <div class="card">
+    <div class="card-title">🏢 거래처별 합계 (현재 필터 기준)</div>
+    <div id="pay-by-vendor"><div class="loading">로딩 중...</div></div>
+  </div>
+
+  <!-- 현장별 합계 -->
+  <div class="card">
+    <div class="card-title">🏗️ 현장별 합계 (현재 필터 기준)</div>
+    <div id="pay-by-site"><div class="loading">로딩 중...</div></div>
+  </div>
+
+  <!-- 리스트 -->
+  <div class="card">
+    <div class="card-title">📋 결제 내역 <span id="pay-list-count" style="font-size:12px;color:#888;font-weight:400"></span></div>
+    <div id="pay-list"><div class="loading">로딩 중...</div></div>
+  </div>
+</div>
+
+<!-- 결제 상세 보기 모달 (조회 전용) -->
+<div id="pay-detail-modal" class="modal-overlay">
+  <div class="modal-box" id="pay-detail-content"></div>
 </div>
 
 <!-- 결제 처리 모달 -->
@@ -1011,21 +1067,86 @@ window.nextStep=async function(id,cur){
   showToast(`✅ '${steps[cur]}' 완료!`);closeModal('step-modal');
 }
 window.deletePay=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'pays',id));showToast('🗑️');}
-function renderPays(){
-  const filter=(document.getElementById('pay-filter')||{}).value||'all';
-  let filtered=pays;
-  if(filter==='진행')filtered=pays.filter(p=>(p.curStep||0)<(p.steps||[]).length);
-  if(filter==='완료')filtered=pays.filter(p=>(p.curStep||0)>=(p.steps||[]).length);
-  const wait=pays.filter(p=>(p.curStep||0)<(p.steps||[]).length);
-  const totalWait=wait.reduce((s,p)=>s+(p.amount||0),0);
-  const ps=document.getElementById('pay-stats');
-  if(ps)ps.innerHTML=`<div class="stat"><div class="stat-n">${wait.length}</div><div class="stat-l">처리중</div></div><div class="stat"><div class="stat-n">${Math.round(totalWait/10000)}만원</div><div class="stat-l">미결금액</div></div>`;
-  const el=document.getElementById('pay-list');if(!el)return;
-  if(!filtered.length){el.innerHTML='<div class="empty">결제 내역 없음</div>';return;}
-  const ICONS={'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡'};
-  el.innerHTML=filtered.map(p=>{
-    const steps=p.steps||[];const cur=p.curStep||0;const isDone=cur>=steps.length;
-    return`<div class="pay-card ${isDone?'done-card':p.isPrepay?'urgent':''}" onclick="openStepModal('${p.id}')">
+function renderPays(){ renderPayDashboard(); }
+
+window.renderPayDashboard = function(){
+  const statusF = (document.getElementById('pf-status')||{}).value || 'all';
+  const fromF = (document.getElementById('pf-from')||{}).value || 'all';
+  const periodF = (document.getElementById('pf-period')||{}).value || 'all';
+  const vendorQ = ((document.getElementById('pf-vendor')||{}).value||'').trim();
+  const siteQ = ((document.getElementById('pf-site')||{}).value||'').trim();
+
+  function payStatus(p){
+    const steps=p.steps||[]; const cur=p.curStep||0;
+    if(cur>=steps.length) return '완료';
+    const curStepName = steps[cur]||'';
+    if(curStepName.includes('확인')) return '확인대기';
+    return '송금대기';
+  }
+
+  const now = new Date();
+  function inPeriod(p){
+    if(periodF==='all') return true;
+    const d = new Date(p.createdAt||0);
+    if(periodF==='month') return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+    if(periodF==='lastmonth'){
+      const lm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+      return d.getFullYear()===lm.getFullYear() && d.getMonth()===lm.getMonth();
+    }
+    return true;
+  }
+
+  let filtered = pays.filter(p=>{
+    if(statusF!=='all' && payStatus(p)!==statusF) return false;
+    if(fromF!=='all' && p.from!==fromF) return false;
+    if(vendorQ && !(p.vendor||'').includes(vendorQ)) return false;
+    if(siteQ && !(p.siteKey||'').includes(siteQ)) return false;
+    if(!inPeriod(p)) return false;
+    return true;
+  });
+
+  // 요약 카드
+  const waitPay = pays.filter(p=>payStatus(p)!=='완료');
+  const confirmWait = pays.filter(p=>payStatus(p)==='확인대기');
+  const sendWait = pays.filter(p=>payStatus(p)==='송금대기');
+  const totalWait = waitPay.reduce((s,p)=>s+(p.amount||0),0);
+  const ss = document.getElementById('pay-summary-stats');
+  if(ss) ss.innerHTML = `<div class="stat"><div class="stat-n">${confirmWait.length}</div><div class="stat-l">현장팀 확인대기</div></div><div class="stat"><div class="stat-n">${sendWait.length}</div><div class="stat-l">송금대기</div></div>`;
+
+  // 이번달 총 지출
+  const monthTotal = pays.filter(p=>{const d=new Date(p.createdAt||0);return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();}).reduce((s,p)=>s+(p.amount||0),0);
+  const mt = document.getElementById('pay-month-total');
+  if(mt) mt.textContent = monthTotal.toLocaleString()+'원';
+
+  // 거래처별 합계
+  const byVendor = {};
+  filtered.forEach(p=>{ byVendor[p.vendor] = (byVendor[p.vendor]||0) + (p.amount||0); });
+  const vendorEl = document.getElementById('pay-by-vendor');
+  if(vendorEl){
+    const entries = Object.entries(byVendor).sort((a,b)=>b[1]-a[1]);
+    vendorEl.innerHTML = entries.length ? entries.map(([name,amt])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:13px"><span>${name}</span><b>${amt.toLocaleString()}원</b></div>`).join('') : '<div class="empty">데이터 없음</div>';
+  }
+
+  // 현장별 합계
+  const bySite = {};
+  filtered.forEach(p=>{ const key=p.siteKey||'(현장 미입력)'; bySite[key] = (bySite[key]||0) + (p.amount||0); });
+  const siteEl = document.getElementById('pay-by-site');
+  if(siteEl){
+    const entries = Object.entries(bySite).sort((a,b)=>b[1]-a[1]);
+    siteEl.innerHTML = entries.length ? entries.map(([name,amt])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:13px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${name}</span><b>${amt.toLocaleString()}원</b></div>`).join('') : '<div class="empty">데이터 없음</div>';
+  }
+
+  // 리스트
+  const countEl = document.getElementById('pay-list-count');
+  if(countEl) countEl.textContent = `(${filtered.length}건)`;
+  const el = document.getElementById('pay-list'); if(!el) return;
+  if(!filtered.length){ el.innerHTML = '<div class="empty">조건에 맞는 결제 내역 없음</div>'; return; }
+  const ICONS = {'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡','사무실 확인':'💼','현장팀 확인':'👷'};
+  el.innerHTML = filtered.map(p=>{
+    const steps=p.steps||[]; const cur=p.curStep||0; const isDone=cur>=steps.length;
+    const st = payStatus(p);
+    const stBadge = st==='완료'?'b-ok':st==='확인대기'?'b-orange':'b-blue';
+    return `<div class="pay-card ${isDone?'done-card':p.isPrepay?'urgent':''}" onclick="openPayDetail('${p.id}')">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <div>
           <div style="display:flex;align-items:center;gap:6px">
@@ -1034,12 +1155,60 @@ function renderPays(){
           </div>
           <div style="font-size:12px;color:#888;margin-top:1px">${p.siteKey||'-'} · ${p.cat||''}</div>
         </div>
-        <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${isDone?'#27ae60':p.isPrepay?'#e74c3c':'#1a1a2e'}">${(p.amount||0).toLocaleString()}원</div><span class="badge ${isDone?'b-ok':p.isPrepay?'b-red':'b-blue'}" style="margin-top:2px">${isDone?'완료':steps[cur]||''}</span></div>
+        <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${isDone?'#27ae60':p.isPrepay?'#e74c3c':'#1a1a2e'}">${(p.amount||0).toLocaleString()}원</div><span class="badge ${stBadge}" style="margin-top:2px">${st}</span></div>
       </div>
       <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap">${steps.map((s,i)=>`<span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${i<cur?'#d5f5e3':i===cur?'#1a1a2e':'#f0f0f0'};color:${i<cur?'#1e8449':i===cur?'#fff':'#bbb'};font-weight:${i===cur?'700':'400'}">${ICONS[s]||''} ${s}</span>${i<steps.length-1?'<span style="color:#ddd;font-size:10px">›</span>':''}`).join('')}</div>
       <div style="font-size:11px;color:#bbb;margin-top:6px">${p.date||''} ${p.memo?'· '+p.memo:''} ${p.fileUrl?'· 📎':''}</div>
     </div>`;
   }).join('');
+}
+
+// CSV 내보내기
+window.exportPayCSV = function(){
+  const rows = [['날짜','거래처','금액','현장','비용항목','출처','상태','메모']];
+  pays.forEach(p=>{
+    const steps=p.steps||[]; const cur=p.curStep||0;
+    const status = cur>=steps.length?'완료':(steps[cur]||'').includes('확인')?'확인대기':'송금대기';
+    rows.push([p.date||'', p.vendor||'', p.amount||0, p.siteKey||'', p.cat||'', p.from==='office'?'사무실':'현장팀', status, p.memo||'']);
+  });
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `결제내역_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('📊 CSV 다운로드 완료');
+}
+
+// 결제 상세 보기 (조회 전용)
+window.openPayDetail = function(id){
+  const p = pays.find(p=>p.id===id); if(!p) return;
+  const steps=p.steps||[]; const cur=p.curStep||0; const isDone=cur>=steps.length;
+  const c = clients.find(c=>c.name===p.vendor);
+  const ICONS = {'거래명세서':'📄','세금계산서':'🧾','확인':'✅','송금':'💸','선송금':'⚡','사무실 확인':'💼','현장팀 확인':'👷'};
+  const accountInfo = c&&c.account?`<div style="background:#e8f5e9;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px"><div style="font-weight:700;color:#1e8449;margin-bottom:4px">💳 이체 정보</div><div style="font-size:14px;font-weight:700">${c.bank||''} ${c.account||''}</div><div style="font-size:12px;color:#888">${c.holder||''}</div></div>`:'';
+  let stepsHtml = '<div style="display:flex;align-items:center;overflow-x:auto;padding:8px 0;margin-bottom:12px">';
+  steps.forEach((s,i)=>{
+    const state = i<cur?'done':i===cur?'active':'pending';
+    stepsHtml += `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:56px"><div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid ${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#ddd'};background:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#f5f5f5'};color:${state==='done'||state==='active'?'#fff':'#bbb'}">${state==='done'?'✓':ICONS[s]||'○'}</div><div style="font-size:10px;font-weight:${state==='active'?'700':'400'};color:${state==='done'?'#27ae60':state==='active'?'#1a1a2e':'#bbb'};text-align:center">${s}</div></div>`;
+    if(i<steps.length-1) stepsHtml += `<div style="flex:1;height:2px;background:${i<cur?'#27ae60':'#eee'};min-width:10px;margin-bottom:18px"></div>`;
+  });
+  stepsHtml += '</div>';
+  const stepLog = Object.entries(p.stepDates||{}).map(([step,date])=>`<div style="font-size:12px;color:#888;padding:3px 0">✓ ${step} — ${date}</div>`).join('');
+  document.getElementById('pay-detail-content').innerHTML = `
+    <div class="modal-title">📋 결제 상세 (조회)<button class="modal-close" onclick="closeModal('pay-detail-modal')">×</button></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="font-size:15px;font-weight:700">${p.vendor}</div>
+      ${p.from==='office'?'<span style="font-size:11px;background:#d6eaf8;color:#1a5276;padding:2px 8px;border-radius:10px;font-weight:600">사무실 등록</span>':p.from==='field'?'<span style="font-size:11px;background:#d5f5e3;color:#1e8449;padding:2px 8px;border-radius:10px;font-weight:600">현장팀 등록</span>':''}
+    </div>
+    <div style="font-size:13px;color:#888;margin-bottom:12px">${p.siteKey||'-'} · ${(p.amount||0).toLocaleString()}원 · ${p.cat||''}</div>
+    ${accountInfo}
+    ${p.fileUrl?`<div style="margin-bottom:12px">${p.fileType&&p.fileType.startsWith('image/')?`<img src="${p.fileUrl}" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${p.fileUrl}','_blank')">`:`<a href="${p.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:10px 12px;text-decoration:none;color:#2980b9;font-size:13px">📄 ${p.fileName||'파일 보기'}</a>`}</div>`:''}
+    ${stepsHtml}
+    ${stepLog?`<div style="background:#f8f8f8;border-radius:8px;padding:10px 12px;margin-bottom:12px"><div class="section-label" style="margin-bottom:4px">처리 기록</div>${stepLog}</div>`:''}
+    <div style="background:#f0f4ff;border-radius:8px;padding:10px 12px;font-size:12px;color:#2980b9;text-align:center">ℹ️ 처리는 사무실 탭 또는 현장팀 탭에서 진행해주세요</div>
+    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:10px" onclick="deletePay('${p.id}');closeModal('pay-detail-modal')">🗑️ 삭제</button>`;
+  openModal('pay-detail-modal');
 }
 
 // 대시보드
