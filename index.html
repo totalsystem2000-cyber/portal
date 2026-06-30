@@ -598,11 +598,10 @@ window.closeModal=function(id){document.getElementById(id).style.display='none';
 const PAY_TAB_PASSWORD = '2007';
 
 window.showTab=function(id,el){
-  if(id==='pay' && sessionStorage.getItem('payTabUnlocked')!=='1'){
+  if(id==='pay'){
     const pw = prompt('🔒 결제현황은 비밀번호가 필요합니다.\n비밀번호를 입력하세요:');
     if(pw===null) return;
     if(pw!==PAY_TAB_PASSWORD){ showToast('⚠️ 비밀번호가 틀렸습니다'); return; }
-    sessionStorage.setItem('payTabUnlocked','1');
   }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
