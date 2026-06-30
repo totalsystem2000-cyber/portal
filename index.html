@@ -544,7 +544,7 @@ const CLOUD_NAME = 'djfvoxf2h';
 const UPLOAD_PRESET = 'totalsystem_unsigned';
 
 // EmailJS 설정
-const EMAILJS_SERVICE_ID = 'service_krhxmdr';
+const EMAILJS_SERVICE_ID = 'service_cveygp9';
 const EMAILJS_TEMPLATE_ID = 'template_h3qkw6j';
 const EMAILJS_PUBLIC_KEY = 'Af9_suhcVeuxt5Byf';
 const NOTIFY_FIELD_EMAILS = ['total4583@hanmail.net'];
@@ -590,7 +590,15 @@ onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.dat
 window.showToast=function(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 window.openModal=function(id){document.getElementById(id).style.display='block';document.body.style.overflow='hidden';}
 window.closeModal=function(id){document.getElementById(id).style.display='none';document.body.style.overflow='';}
+const PAY_TAB_PASSWORD = '1234';
+
 window.showTab=function(id,el){
+  if(id==='pay' && sessionStorage.getItem('payTabUnlocked')!=='1'){
+    const pw = prompt('🔒 결제현황은 비밀번호가 필요합니다.\n비밀번호를 입력하세요:');
+    if(pw===null) return;
+    if(pw!==PAY_TAB_PASSWORD){ showToast('⚠️ 비밀번호가 틀렸습니다'); return; }
+    sessionStorage.setItem('payTabUnlocked','1');
+  }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById(id).classList.add('on');el.classList.add('on');
@@ -1615,7 +1623,8 @@ window.removeDocItem = async function(docId, idx) {
   } catch(e) { showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
 }
 
-document.getElementById('w-date').value=new Date().toISOString().slice(0,10);
+const wDateEl = document.getElementById('w-date');
+if(wDateEl) wDateEl.value=new Date().toISOString().slice(0,10);
 document.getElementById('ql-date').value=new Date().toISOString().slice(0,10);
 </script>
 </body>
