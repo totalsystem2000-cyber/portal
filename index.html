@@ -286,6 +286,10 @@ textarea{resize:vertical;min-height:60px}
   </div>
 
   <div class="card">
+    <div class="card-title">⚡ 현장팀 선송금 요청 (빨리 송금)</div>
+    <div id="office-prepay-list"><div class="loading">로딩 중...</div></div>
+  </div>
+  <div class="card">
     <div class="card-title">📋 내가 등록한 서류 (현장팀에게 메일 보내기)</div>
     <div id="office-doc-list"><div class="loading">로딩 중...</div></div>
   </div>
@@ -831,44 +835,95 @@ function renderFieldMyUploads(){
 }
 
 function renderOfficeDocs(){
+  // 현장팀 선송금 요청 (빨리 송금해달라는 건)
+  const prepayEl=document.getElementById('office-prepay-list');
+  if(prepayEl){
+    const prepayDocs=docs.filter(d=>d.from==='field'&&d.isPrepay);
+    if(!prepayDocs.length){prepayEl.innerHTML='<div class="empty">선송금 요청 없음</div>';}
+    else prepayEl.innerHTML=prepayDocs.map(d=>{
+      const payable = !d.paid;
+      const fullyClosed = d.paid && d.hasStatement && d.hasTax;
+      return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div style="font-size:13px;font-weight:700">⚡ ${d.vendor}</div>
+        <div style="font-size:12px;color:#888">${(d.amount||0).toLocaleString()}원 · ${d.date||''} · ${d.siteKey||'-'}</div></div>
+        <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:6px">
+        <span onclick="togglePayDocField('${d.id}','hasStatement')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasStatement?'#d5f5e3':'#f0f0f0'};color:${d.hasStatement?'#1e8449':'#bbb'};font-weight:${d.hasStatement?'700':'400'}">📄 거래명세서</span>
+        <span onclick="togglePayDocField('${d.id}','hasTax')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasTax?'#d5f5e3':'#f0f0f0'};color:${d.hasTax?'#1e8449':'#bbb'};font-weight:${d.hasTax?'700':'400'}">🧾 세금계산서${!d.hasTax?' (필수)':''}</span>
+      </div>
+      ${d.fileUrl?`${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-top:8px;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px;margin-top:6px">📄 ${d.fileName||'파일 보기'}</a>`}`:''}
+      ${fullyClosed?`<div style="background:#d5f5e3;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px;color:#1e8449;font-weight:700;text-align:center">🎉 송금 + 서류 모두 완료</div>`
+        : payable?`<button class="btn btn-primary" style="background:#e67e22;margin-top:8px" onclick="markPaid('${d.id}')">💸 바로 송금하기</button>`
+        :`<div style="background:#fdebd0;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px;color:#a04000;font-weight:700;text-align:center">⚠️ 송금완료 — 세금계산서 받으면 위에서 체크해주세요</div>`}
+    </div>`;
+    }).join('');
+  }
+
   const el=document.getElementById('office-doc-list');if(!el)return;
   const officeDocs=docs.filter(d=>d.from==='office');
   if(!officeDocs.length){el.innerHTML='<div class="empty">등록된 서류 없음</div>';return;}
-  el.innerHTML=officeDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+  el.innerHTML=officeDocs.map(d=>{
+    const payable = !d.paid && (d.isPrepay || (d.hasStatement && d.hasTax && d.siteConfirmed));
+    const fullyClosed = d.paid && d.hasStatement && d.hasTax;
+    return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
       <div>
-        <div style="font-size:13px;font-weight:700">${d.vendor}</div>
-        <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
+        <div style="font-size:13px;font-weight:700">${d.isPrepay?'⚡ ':''}${d.vendor}</div>
+        <div style="font-size:12px;color:#888">${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
       </div>
       <div style="display:flex;gap:4px;align-items:center">
-        <span class="badge ${d.siteConfirmed?'b-ok':'b-wait'}">${d.siteConfirmed?'확인완료':'현장명 대기'}</span>
         <button class="btn btn-sm btn-gray" style="padding:3px 8px;font-size:11px" onclick="openEditDoc('${d.id}')">✏️</button>
         <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
       </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:6px">
+      <span onclick="togglePayDocField('${d.id}','hasStatement')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasStatement?'#d5f5e3':'#f0f0f0'};color:${d.hasStatement?'#1e8449':'#bbb'};font-weight:${d.hasStatement?'700':'400'}">📄 거래명세서</span>
+      <span onclick="togglePayDocField('${d.id}','hasTax')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasTax?'#d5f5e3':'#f0f0f0'};color:${d.hasTax?'#1e8449':'#bbb'};font-weight:${d.hasTax?'700':'400'}">🧾 세금계산서</span>
+      <span style="font-size:11px;padding:3px 8px;border-radius:10px;background:${d.siteConfirmed?'#d5f5e3':'#f0f0f0'};color:${d.siteConfirmed?'#1e8449':'#bbb'};font-weight:${d.siteConfirmed?'700':'400'}">✅ 확인${d.siteConfirmed?' — '+(d.siteKey||''):''}</span>
     </div>
     ${d.fileUrl?`<div style="margin-top:8px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
     ${d.from==='office'&&!d.siteConfirmed?`<div style="display:flex;align-items:center;gap:6px;margin-top:8px">
       <button class="btn btn-sm" style="background:#2980b9;color:#fff;flex:1;justify-content:center" onclick="sendDocNotifyEmail('${d.id}')">📧 현장팀에게 메일 보내기</button>
       ${d.emailSent?'<span style="font-size:11px;color:#27ae60;font-weight:700;white-space:nowrap">✅ 발송완료</span>':''}
     </div>`:''}
-  </div>`).join('');
+    ${fullyClosed?`<div style="background:#d5f5e3;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px;color:#1e8449;font-weight:700;text-align:center">🎉 송금 + 서류 모두 완료</div>`
+      : payable?`<button class="btn btn-primary" style="background:#e67e22;margin-top:8px" onclick="markPaid('${d.id}')">💸 송금하기</button>`
+      : d.paid?`<div style="background:#fdebd0;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px;color:#a04000;font-weight:700;text-align:center">⚠️ 송금완료 — ${!d.hasTax?'세금계산서':'거래명세서'} 받으면 위에서 체크해주세요</div>`
+      :''}
+  </div>`;
+  }).join('');
 
-  // 현장팀이 전달한 서류 (조회 전용, 메일 버튼 없음 — 현장팀 탭에서 발송)
+  // 현장팀이 전달한 서류 (메일 버튼 없음 — 현장팀 탭에서 발송, 송금 버튼은 여기서)
   const fieldEl=document.getElementById('office-field-list');
   if(fieldEl){
     const fieldDocs=docs.filter(d=>d.from==='field'&&!d.isPrepay);
     if(!fieldDocs.length){fieldEl.innerHTML='<div class="empty">현장팀이 전달한 서류 없음</div>';}
-    else fieldEl.innerHTML=fieldDocs.map(d=>`<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
+    else fieldEl.innerHTML=fieldDocs.map(d=>{
+      const payable = !d.paid && d.hasStatement && d.hasTax && d.siteConfirmed;
+      const fullyClosed = d.paid && d.hasStatement && d.hasTax;
+      return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
           <div style="font-size:13px;font-weight:700">${d.vendor}</div>
-          <div style="font-size:12px;color:#888">${d.doctype||''} · ${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
+          <div style="font-size:12px;color:#888">${(d.amount||0).toLocaleString()}원 · ${d.date||''}</div>
           <span class="badge b-ok" style="margin-top:4px">현장팀 전달</span>
         </div>
         <button class="btn-del" onclick="deleteDoc('${d.id}')">🗑</button>
       </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:6px">
+        <span onclick="togglePayDocField('${d.id}','hasStatement')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasStatement?'#d5f5e3':'#f0f0f0'};color:${d.hasStatement?'#1e8449':'#bbb'};font-weight:${d.hasStatement?'700':'400'}">📄 거래명세서</span>
+        <span onclick="togglePayDocField('${d.id}','hasTax')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:10px;background:${d.hasTax?'#d5f5e3':'#f0f0f0'};color:${d.hasTax?'#1e8449':'#bbb'};font-weight:${d.hasTax?'700':'400'}">🧾 세금계산서</span>
+        <span style="font-size:11px;padding:3px 8px;border-radius:10px;background:#d5f5e3;color:#1e8449;font-weight:700">✅ 확인 — ${d.siteKey||''}</span>
+      </div>
       ${d.fileUrl?`<div style="margin-top:8px">${d.fileType&&d.fileType.startsWith('image/')?`<img src="${d.fileUrl}" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid #eee;cursor:pointer" onclick="window.open('${d.fileUrl}','_blank')">`:`<a href="${d.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:8px 12px;text-decoration:none;color:#2980b9;font-size:12px">📄 ${d.fileName||'파일 보기'}</a>`}</div>`:''}
-    </div>`).join('');
+      ${fullyClosed?`<div style="background:#d5f5e3;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px;color:#1e8449;font-weight:700;text-align:center">🎉 송금 + 서류 모두 완료</div>`
+        : payable?`<button class="btn btn-primary" style="background:#e67e22;margin-top:8px" onclick="markPaid('${d.id}')">💸 송금하기</button>`
+        : d.paid?`<div style="background:#fdebd0;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:12px;color:#a04000;font-weight:700;text-align:center">⚠️ 송금완료 — 서류 받으면 위에서 체크해주세요</div>`
+        :''}
+    </div>`;
+    }).join('');
   }
 }
 
