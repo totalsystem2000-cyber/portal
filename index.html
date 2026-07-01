@@ -208,6 +208,14 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="field"><label>작업내용 *</label><textarea id="ql-work" placeholder="오늘 작업 내용"></textarea></div>
     <div class="field"><label>특이사항</label><input type="text" id="ql-note"></div>
+    <div class="field">
+      <label>사진 첨부 (선택)</label>
+      <div class="upload-area" onclick="document.getElementById('ql-file').click()">
+        📷 클릭해서 사진 선택
+        <input type="file" id="ql-file" accept="image/*,.pdf" style="display:none" onchange="previewFile(this,'ql')">
+      </div>
+      <div id="ql-file-preview"></div>
+    </div>
     <button class="btn btn-primary" onclick="submitQuickLog()">➕ 일지 등록</button>
     <div class="divider"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -1570,10 +1578,25 @@ window.submitQuickLog = async function() {
   const work = document.getElementById('ql-work').value.trim();
   if(!site||!workers||!work) return showToast('⚠️ 현장, 작업자, 작업내용 필수');
   const matched = sites.find(s=>(s.client+' - '+s.contract)===site||s.contract===site);
-  await addDoc(collection(db,'logs'),{siteId:matched?matched.id:'',siteName:site,date:document.getElementById('ql-date').value,workers,startTime:document.getElementById('ql-start').value,endTime:document.getElementById('ql-end').value,work,note:document.getElementById('ql-note').value.trim(),createdAt:Date.now()});
+  // 사진 업로드
+  let fileUrl='', fileType='', fileName='';
+  const fileInput = document.getElementById('ql-file');
+  if(fileInput && fileInput.files[0]){
+    try{
+      showToast('📤 사진 업로드 중...');
+      const r = await uploadToCloud(fileInput.files[0], null, null);
+      fileUrl=r.secure_url; fileType=fileInput.files[0].type; fileName=fileInput.files[0].name;
+    }catch(e){ showToast('⚠️ 사진 업로드 실패, 텍스트만 저장'); }
+  }
+  await addDoc(collection(db,'logs'),{siteId:matched?matched.id:'',siteName:site,date:document.getElementById('ql-date').value,workers,startTime:document.getElementById('ql-start').value,endTime:document.getElementById('ql-end').value,work,note:document.getElementById('ql-note').value.trim(),fileUrl,fileType,fileName,createdAt:Date.now()});
   document.getElementById('ql-workers').value='';
   document.getElementById('ql-work').value='';
   document.getElementById('ql-note').value='';
+  document.getElementById('ql-file-preview').innerHTML='';
+  const qlFile = document.getElementById('ql-file');
+  if(qlFile) qlFile.value='';
+  const area = document.querySelector('[onclick="document.getElementById(\'ql-file\').click()"]');
+  if(area) area.style.borderColor='#ddd';
   showToast('✅ 일지 등록 완료!');
   renderSiteRecentLogs();
 }
@@ -1592,6 +1615,8 @@ function renderSiteRecentLogs() {
     </div>
     <div style="font-size:13px;font-weight:600;margin-top:1px">👷 ${l.workers||''}</div>
     <div style="font-size:12px;color:#555;margin-top:1px">${l.work||''}</div>
+    ${l.fileUrl&&l.fileType&&l.fileType.startsWith('image/')?`<img src="${l.fileUrl}" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid #eee;margin-top:6px;cursor:pointer" onclick="window.open('${l.fileUrl}','_blank')">`:''}
+    ${l.fileUrl&&l.fileType==='application/pdf'?`<a href="${l.fileUrl}" target="_blank" style="display:flex;align-items:center;gap:6px;background:#f0f4ff;border-radius:8px;padding:6px 10px;text-decoration:none;color:#2980b9;font-size:12px;margin-top:6px">📄 ${l.fileName||'파일 보기'}</a>`:''}
   </div>`).join('');
 }
 
