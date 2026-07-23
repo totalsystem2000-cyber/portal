@@ -242,9 +242,20 @@ textarea{resize:vertical;min-height:60px}
 <div id="search" class="page">
   <div class="card">
     <div class="card-title">🔍 통합 조회</div>
-    <div class="field"><input type="text" id="global-search" placeholder="거래처명 또는 현장명 입력 (예: 법무부, 보호관찰소)" oninput="renderGlobalSearch()" style="margin-bottom:0"></div>
+    <div class="field"><label>자유 검색</label><input type="text" id="global-search" placeholder="거래처명 또는 현장명 입력" oninput="renderGlobalSearch()" style="margin-bottom:0"></div>
+    <div class="divider"></div>
+    <div class="field"><label>거래처 정확히 선택 (부분일치 제외)</label>
+      <select id="global-filter-client" onchange="renderGlobalSearch()">
+        <option value="">전체</option>
+      </select>
+    </div>
+    <div class="field"><label>현장명 정확히 선택</label>
+      <select id="global-filter-site" onchange="renderGlobalSearch()">
+        <option value="">전체</option>
+      </select>
+    </div>
   </div>
-  <div id="global-search-results"><div class="empty">검색어를 입력하세요</div></div>
+  <div id="global-search-results"><div class="empty">검색어를 입력하거나 필터를 선택하세요</div></div>
 </div>
 
 <!-- 엑셀 업로드 모달 -->
@@ -1288,14 +1299,40 @@ function renderDash(){
 }
 
 // 통합 조회
-window.renderGlobalSearch = function(){
-  const q = (document.getElementById('global-search').value||'').trim();
-  const el = document.getElementById('global-search-results');
-  if(!q){ el.innerHTML = '<div class="empty">검색어를 입력하세요</div>'; return; }
+// 조회 탭 드롭다운 옵션 갱신
+function updateGlobalSearchFilters(){
+  const clientSel = document.getElementById('global-filter-client');
+  const siteSel = document.getElementById('global-filter-site');
+  if(!clientSel || !siteSel) return;
+  const curClient = clientSel.value;
+  const curSite = siteSel.value;
+  const clientNames = [...new Set(sites.map(s=>s.client).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const siteNames = [...new Set(sites.map(s=>s.contract).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  clientSel.innerHTML = '<option value="">전체</option>' + clientNames.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('');
+  siteSel.innerHTML = '<option value="">전체</option>' + siteNames.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('');
+  if(clientNames.includes(curClient)) clientSel.value = curClient;
+  if(siteNames.includes(curSite)) siteSel.value = curSite;
+}
 
-  const matchedSites = sites.filter(s=>((s.client||'')+(s.contract||'')+(s.entity||'')).includes(q));
+window.renderGlobalSearch = function(){
+  updateGlobalSearchFilters();
+  const q = (document.getElementById('global-search').value||'').trim();
+  const filterClient = document.getElementById('global-filter-client').value;
+  const filterSite = document.getElementById('global-filter-site').value;
+  const el = document.getElementById('global-search-results');
+  if(!q && !filterClient && !filterSite){ el.innerHTML = '<div class="empty">검색어를 입력하거나 필터를 선택하세요</div>'; return; }
+
+  let matchedSites = sites;
+  if(filterClient) matchedSites = matchedSites.filter(s=>s.client===filterClient);
+  if(filterSite) matchedSites = matchedSites.filter(s=>s.contract===filterSite);
+  if(q) matchedSites = matchedSites.filter(s=>((s.client||'')+(s.contract||'')+(s.entity||'')).includes(q));
+
   const matchedSiteIds = new Set(matchedSites.map(s=>s.id));
-  const matchedLogs = logs.filter(l=>{
+  let matchedLogs = logs.filter(l=>{
+    if(filterClient || filterSite){
+      // 필터가 선택되면 해당 현장에 연결된 일지만 (siteId 기준 정확 매칭)
+      return matchedSiteIds.has(l.siteId);
+    }
     const site = sites.find(s=>s.id===l.siteId);
     const searchable = [l.siteName||'', site?site.client:'', site?site.contract:'', l.workers||'', l.work||''].join(' ');
     return searchable.includes(q);
