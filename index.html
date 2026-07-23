@@ -6,58 +6,58 @@
 <title>토탈시스템 업무 포털</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f0f2f5;color:#1a1a1a;font-size:14px}
-.header{background:#1a1a2e;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
-.header h1{font-size:16px;font-weight:700}
-.tabs{display:flex;background:#fff;border-bottom:2px solid #e5e5e5;position:sticky;top:49px;z-index:99;overflow-x:auto}
-.tab{flex:1;min-width:64px;padding:12px 6px;font-size:15px;line-height:1.4;border:none;background:none;color:#999;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;font-family:inherit;font-weight:500;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:3px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f0f2f5;color:#1a1a1a;font-size:15px}
+.header{background:#1a1a2e;color:#fff;padding:16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.header h1{font-size:18px;font-weight:700}
+.tabs{display:flex;background:#fff;border-bottom:2px solid #e5e5e5;position:sticky;top:53px;z-index:99;overflow-x:auto}
+.tab{flex:1;min-width:64px;padding:14px 6px;font-size:15px;line-height:1.4;border:none;background:none;color:#999;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:inherit;font-weight:500;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:3px}
 .tab.on{color:#1a1a2e;border-bottom-color:#1a1a2e;font-weight:700}
 .tab.office{color:#2980b9}.tab.office.on{border-bottom-color:#2980b9;color:#2980b9}
 .tab.field{color:#27ae60}.tab.field.on{border-bottom-color:#27ae60;color:#27ae60}
-.page{display:none;padding:12px}.page.on{display:block}
-.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.card-title{font-size:13px;font-weight:700;margin-bottom:12px;color:#1a1a2e;display:flex;align-items:center;gap:6px}
-.field{margin-bottom:10px}
-.field label{display:block;font-size:11px;color:#888;margin-bottom:4px;font-weight:600;letter-spacing:0.3px}
-input,select,textarea{width:100%;padding:9px 11px;font-size:13px;border:1.5px solid #e8e8e8;border-radius:8px;background:#fafafa;color:#1a1a1a;font-family:inherit;-webkit-appearance:none}
+.page{display:none;padding:14px}.page.on{display:block}
+.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:16px;color:#1a1a2e;display:flex;align-items:center;gap:6px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:#777;margin-bottom:6px;font-weight:600;letter-spacing:0.3px}
+input,select,textarea{width:100%;padding:12px 13px;font-size:15px;border:1.5px solid #e8e8e8;border-radius:9px;background:#fafafa;color:#1a1a1a;font-family:inherit;-webkit-appearance:none}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a2e;background:#fff}
-textarea{resize:vertical;min-height:60px}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;font-size:13px;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600}
-.btn-primary{background:#1a1a2e;color:#fff;width:100%;justify-content:center;margin-top:6px}
-.btn-office{background:#2980b9;color:#fff;width:100%;justify-content:center;margin-top:6px}
-.btn-field{background:#27ae60;color:#fff;width:100%;justify-content:center;margin-top:6px}
-.btn-red{background:#e74c3c;color:#fff;width:100%;justify-content:center;margin-top:6px}
-.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+textarea{resize:vertical;min-height:70px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:13px 18px;font-size:15px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-weight:700}
+.btn-primary{background:#1a1a2e;color:#fff;width:100%;justify-content:center;margin-top:8px}
+.btn-office{background:#2980b9;color:#fff;width:100%;justify-content:center;margin-top:8px}
+.btn-field{background:#27ae60;color:#fff;width:100%;justify-content:center;margin-top:8px}
+.btn-red{background:#e74c3c;color:#fff;width:100%;justify-content:center;margin-top:8px}
+.btn-sm{padding:7px 12px;font-size:13px;border-radius:8px}
 .btn-gray{background:#f0f0f0;color:#555}
-.btn-del{background:none;border:none;color:#ccc;cursor:pointer;padding:4px;font-size:16px;line-height:1;flex-shrink:0}
+.btn-del{background:none;border:none;color:#ccc;cursor:pointer;padding:5px;font-size:18px;line-height:1;flex-shrink:0}
 .btn-del:hover{color:#e74c3c}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.stat{background:#fff;border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center}
-.stat-n{font-size:22px;font-weight:700;color:#1a1a2e}
-.stat-l{font-size:11px;color:#999;margin-top:2px}
-.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:#fff;border-radius:14px;padding:20px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);text-align:center}
+.stat-n{font-size:34px;font-weight:800;color:#1a1a2e;line-height:1.1}
+.stat-l{font-size:13px;color:#999;margin-top:6px;font-weight:600}
+.badge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
 .b-ok{background:#d5f5e3;color:#1e8449}
 .b-wait{background:#fef9e7;color:#b7950b}
 .b-blue{background:#d6eaf8;color:#1a5276}
 .b-red{background:#fadbd8;color:#922b21}
 .b-done{background:#f0f0f0;color:#888}
 .b-orange{background:#fdebd0;color:#a04000}
-.list-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f0f0f0}
+.list-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f0}
 .list-item:last-child{border-bottom:none}
-.item-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.item-name{font-size:13px;font-weight:600}
-.item-sub{font-size:12px;color:#999;margin-top:1px}
-.back-btn{display:flex;align-items:center;gap:4px;font-size:13px;color:#1a1a2e;border:none;background:none;cursor:pointer;margin-bottom:14px;font-family:inherit;font-weight:600;padding:0}
-.divider{height:1px;background:#f0f0f0;margin:12px 0}
-.empty{text-align:center;padding:24px;color:#bbb;font-size:13px}
+.item-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.item-name{font-size:15px;font-weight:700}
+.item-sub{font-size:13px;color:#999;margin-top:2px}
+.back-btn{display:flex;align-items:center;gap:4px;font-size:14px;color:#1a1a2e;border:none;background:none;cursor:pointer;margin-bottom:16px;font-family:inherit;font-weight:700;padding:0}
+.divider{height:1px;background:#f0f0f0;margin:16px 0}
+.empty{text-align:center;padding:28px;color:#bbb;font-size:14px}
 .ac-wrap{position:relative}
 .ac-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid #1a1a2e;border-radius:8px;z-index:300;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);display:none}
-.ac-item{padding:10px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5}
+.ac-item{padding:11px 13px;font-size:14px;cursor:pointer;border-bottom:1px solid #f5f5f5}
 .ac-item:hover{background:#e8f0fe}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.info-row{display:flex;padding:5px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-row{display:flex;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:14px}
 .info-row:last-child{border-bottom:none}
-.info-key{color:#999;width:75px;flex-shrink:0;font-size:12px;font-weight:600}
+.info-key{color:#999;width:85px;flex-shrink:0;font-size:13px;font-weight:600}
 .info-val{color:#1a1a1a;flex:1;word-break:break-all}
 .section-label{font-size:11px;font-weight:700;color:#888;letter-spacing:0.5px;margin-bottom:8px}
 .loading{text-align:center;padding:20px;color:#bbb;font-size:13px}
@@ -102,6 +102,7 @@ textarea{resize:vertical;min-height:60px}
   <button class="tab on" onclick="showTab('dash',this)">📊 대시보드</button>
   <button class="tab" onclick="showTab('clients',this)">🏢 거래처</button>
   <button class="tab" onclick="showTab('sites',this)">🏗️ 현장</button>
+  <button class="tab" onclick="showTab('logs',this)">📋 일지</button>
   <button class="tab" onclick="showTab('search',this)">🔍 조회</button>
 </div>
 
@@ -161,6 +162,7 @@ textarea{resize:vertical;min-height:60px}
         <div class="ac-wrap"><input type="text" id="s-client" placeholder="거래처 자동완성" oninput="acSearch(this.value,'s-client-ac','s-client','client')" autocomplete="off"><div class="ac-list" id="s-client-ac"></div></div>
       </div>
       <div class="field"><label>건명 *</label><input type="text" id="s-contract" placeholder="예) 냉난방기 전열공사"></div>
+      <div class="field"><label>담당 부서 (선택)</label><input type="text" id="s-dept" placeholder="예) 운영지원과, 보호관찰과"></div>
       <div class="field"><label>계약 사업자 *</label>
         <select id="s-entity">
           <option value="(주)토탈시스템">(주)토탈시스템</option>
@@ -191,7 +193,24 @@ textarea{resize:vertical;min-height:60px}
       <div id="site-list" style="margin-top:10px"><div class="loading">로딩 중...</div></div>
     </div>
   </div>
-  <!-- 현장 탭 일지 작성 섹션 -->
+
+  <div id="site-detail-view" style="display:none">
+    <button class="back-btn" onclick="showView('site-list-view','site-detail-view');renderSites()">← 현장 목록</button>
+    <div id="site-detail-tabs" style="display:flex;gap:4px;margin-bottom:12px">
+      <button class="btn btn-sm" id="stab-info" onclick="showSiteTab('info')" style="background:#1a1a2e;color:#fff;flex:1">기본정보</button>
+      <button class="btn btn-sm btn-gray" id="stab-docs" onclick="showSiteTab('docs')" style="flex:1">계약서류</button>
+      <button class="btn btn-sm btn-gray" id="stab-claim" onclick="showSiteTab('claim')" style="flex:1">청구서류</button>
+      <button class="btn btn-sm btn-gray" id="stab-log" onclick="showSiteTab('log')" style="flex:1">일지</button>
+    </div>
+    <div id="site-tab-info" class="card"></div>
+    <div id="site-tab-docs" class="card" style="display:none"></div>
+    <div id="site-tab-claim" class="card" style="display:none"></div>
+    <div id="site-tab-log" class="card" style="display:none"></div>
+  </div>
+</div>
+
+<!-- 일지 탭 -->
+<div id="logs" class="page">
   <div class="card" id="site-log-quick">
     <div class="card-title">📋 일지 빠른 입력</div>
     <div class="field"><label>날짜</label><input type="date" id="ql-date"></div>
@@ -214,27 +233,14 @@ textarea{resize:vertical;min-height:60px}
       <div id="ql-file-preview"></div>
     </div>
     <button class="btn btn-primary" onclick="submitQuickLog()">➕ 일지 등록</button>
-    <div class="divider"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div class="section-label" style="margin:0">최근 일지</div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="card-title" style="margin:0">📋 일지 목록</div>
       <button class="btn btn-sm btn-gray" onclick="exportLogsCSV()">📊 엑셀로 내보내기</button>
     </div>
-    <div class="field"><input type="text" id="log-search" placeholder="🔍 거래처/현장명으로 검색 (예: 법무부, 보호관찰소)" oninput="renderSiteRecentLogs()" style="margin-bottom:10px"></div>
-    <div id="site-recent-logs"><div class="loading">로딩 중...</div></div>
-  </div>
-
-  <div id="site-detail-view" style="display:none">
-    <button class="back-btn" onclick="showView('site-list-view','site-detail-view');renderSites()">← 현장 목록</button>
-    <div id="site-detail-tabs" style="display:flex;gap:4px;margin-bottom:12px">
-      <button class="btn btn-sm" id="stab-info" onclick="showSiteTab('info')" style="background:#1a1a2e;color:#fff;flex:1">기본정보</button>
-      <button class="btn btn-sm btn-gray" id="stab-docs" onclick="showSiteTab('docs')" style="flex:1">계약서류</button>
-      <button class="btn btn-sm btn-gray" id="stab-claim" onclick="showSiteTab('claim')" style="flex:1">청구서류</button>
-      <button class="btn btn-sm btn-gray" id="stab-log" onclick="showSiteTab('log')" style="flex:1">일지</button>
-    </div>
-    <div id="site-tab-info" class="card"></div>
-    <div id="site-tab-docs" class="card" style="display:none"></div>
-    <div id="site-tab-claim" class="card" style="display:none"></div>
-    <div id="site-tab-log" class="card" style="display:none"></div>
+    <div class="field"><input type="text" id="log-search" placeholder="🔍 거래처/현장명으로 검색 (예: 법무부, 보호관찰소)" oninput="renderSiteRecentLogs()" style="margin-bottom:0"></div>
+    <div id="site-recent-logs" style="margin-top:14px"><div class="loading">로딩 중...</div></div>
   </div>
 </div>
 
@@ -403,6 +409,7 @@ window.showTab=function(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.getElementById(id).classList.add('on');el.classList.add('on');
   if(id==='search')renderGlobalSearch();
+  if(id==='logs')renderSiteRecentLogs();
 }
 window.showView=function(s,h){document.getElementById(s).style.display='';document.getElementById(h).style.display='none';}
 window.showFieldTab=function(tab){
@@ -852,9 +859,10 @@ window.addSite=async function(){
   const client=document.getElementById('s-client').value.trim();
   const contract=document.getElementById('s-contract').value.trim();
   const entity=document.getElementById('s-entity').value;
+  const dept=document.getElementById('s-dept').value.trim();
   if(!client||!contract)return showToast('⚠️ 발주처와 건명 입력');
-  await addDoc(collection(db,'sites'),{client,contract,entity,contractDate:document.getElementById('s-contractdate').value,start:document.getElementById('s-start').value,end:document.getElementById('s-end').value,price:parseInt(document.getElementById('s-price').value)||0,status:document.getElementById('s-status').value,contractDocs:{},claimDocs:{},extraContractDocs:[],extraClaimDocs:[],createdAt:Date.now()});
-  ['s-client','s-contract','s-contractdate','s-start','s-end','s-price'].forEach(id=>document.getElementById(id).value='');
+  await addDoc(collection(db,'sites'),{client,contract,entity,dept,contractDate:document.getElementById('s-contractdate').value,start:document.getElementById('s-start').value,end:document.getElementById('s-end').value,price:parseInt(document.getElementById('s-price').value)||0,status:document.getElementById('s-status').value,contractDocs:{},claimDocs:{},extraContractDocs:[],extraClaimDocs:[],createdAt:Date.now()});
+  ['s-client','s-contract','s-dept','s-contractdate','s-start','s-end','s-price'].forEach(id=>document.getElementById(id).value='');
   showToast('✅ 현장 등록');
 }
 const ENTITY_LIST = ['(주)토탈시스템','익투스','디자인플러스','(주)명가익스프레스','하나로기획','명강이엔씨(주)','더본디자인(주)','(주)환경색채','(주)유강이엔씨'];
@@ -881,6 +889,7 @@ window.editSiteInfo = function(siteId){
       <div class="ac-wrap"><input type="text" id="edit-site-client" value="${(s.client||'').replace(/"/g,'&quot;')}" oninput="acSearch(this.value,'edit-site-client-ac','edit-site-client','client')" autocomplete="off"><div class="ac-list" id="edit-site-client-ac"></div></div>
     </div>
     <div class="field"><label>건명 *</label><input type="text" id="edit-site-contract" value="${(s.contract||'').replace(/"/g,'&quot;')}"></div>
+    <div class="field"><label>담당 부서 (선택)</label><input type="text" id="edit-site-dept" value="${(s.dept||'').replace(/"/g,'&quot;')}" placeholder="예) 운영지원과"></div>
     <div class="field"><label>계약 사업자</label>
       <select id="edit-site-entity">
         ${ENTITY_LIST.map(e=>`<option value="${e}" ${s.entity===e?'selected':''}>${e}</option>`).join('')}
@@ -914,6 +923,7 @@ window.saveSiteInfo = async function(siteId){
   try{
     await updateDoc(doc(db,'sites',siteId), {
       client, contract,
+      dept: document.getElementById('edit-site-dept').value.trim(),
       entity: document.getElementById('edit-site-entity').value,
       contractDate: document.getElementById('edit-site-contractdate').value,
       start: document.getElementById('edit-site-start').value,
@@ -934,7 +944,7 @@ window.openSite=function(id){
   curSiteId=id;const s=sites.find(s=>s.id===id);if(!s)return;
   document.getElementById('site-tab-info').innerHTML=`
     <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-      <div><div style="font-size:15px;font-weight:700">${s.contract}</div><div style="font-size:12px;color:#999">${s.client}</div>
+      <div><div style="font-size:15px;font-weight:700">${s.contract}</div><div style="font-size:12px;color:#999">${s.client}${s.dept?' '+s.dept:''}</div>
       <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}">${s.status}</span>${s.entity?`<span class="badge b-blue">🏢 ${s.entity}</span>`:''}</div></div>
       <button class="btn btn-sm btn-gray" onclick="editSiteEntity('${id}')" style="font-size:11px">🏢 사업자 변경</button>
       <button class="btn btn-sm btn-gray" onclick="editSiteInfo('${id}')" style="font-size:11px">✏️ 정보 수정</button>
@@ -1046,7 +1056,7 @@ function renderSites(){
   if(ss)ss.innerHTML=`<div class="stat"><div class="stat-n">${sites.length}</div><div class="stat-l">전체</div></div><div class="stat"><div class="stat-n">${active}</div><div class="stat-l">진행중</div></div>`;
   const el=document.getElementById('site-list');if(!el)return;
   if(!filtered.length){el.innerHTML='<div class="empty">현장 없음</div>';return;}
-  el.innerHTML=filtered.map(s=>`<div class="list-item"><div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}${s.entity?' · 🏢 '+s.entity:''}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span><button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button></div>`).join('');
+  el.innerHTML=filtered.map(s=>`<div class="list-item"><div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}${s.dept?' '+s.dept:''}${s.entity?' · 🏢 '+s.entity:''}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span><button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button></div>`).join('');
 }
 
 // 결제
@@ -1281,7 +1291,7 @@ function renderDash(){
       <div class="item-icon" style="background:#e8f5e9">🏗️</div>
       <div style="flex:1;min-width:0">
         <div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div>
-        <div class="item-sub">${s.client}${s.entity?' · 🏢 '+s.entity:''}</div>
+        <div class="item-sub">${s.client}${s.dept?' '+s.dept:''}${s.entity?' · 🏢 '+s.entity:''}</div>
       </div>
     </div>`).join('') : '<div class="empty">진행중인 현장 없음</div>';
   }
@@ -1292,7 +1302,7 @@ function renderDash(){
       <div class="item-icon" style="background:#f0f0f0">✅</div>
       <div style="flex:1;min-width:0">
         <div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div>
-        <div class="item-sub">${s.client}${s.entity?' · 🏢 '+s.entity:''}</div>
+        <div class="item-sub">${s.client}${s.dept?' '+s.dept:''}${s.entity?' · 🏢 '+s.entity:''}</div>
       </div>
     </div>`).join('') : '<div class="empty">완료된 현장 없음</div>';
   }
@@ -1325,7 +1335,7 @@ window.renderGlobalSearch = function(){
   let matchedSites = sites;
   if(filterClient) matchedSites = matchedSites.filter(s=>s.client===filterClient);
   if(filterSite) matchedSites = matchedSites.filter(s=>s.contract===filterSite);
-  if(q) matchedSites = matchedSites.filter(s=>((s.client||'')+(s.contract||'')+(s.entity||'')).includes(q));
+  if(q) matchedSites = matchedSites.filter(s=>((s.client||'')+(s.dept||'')+(s.contract||'')+(s.entity||'')).includes(q));
 
   const matchedSiteIds = new Set(matchedSites.map(s=>s.id));
   let matchedLogs = logs.filter(l=>{
@@ -1343,7 +1353,7 @@ window.renderGlobalSearch = function(){
   html += `<div class="card"><div class="card-title">🏗️ 현장 (${matchedSites.length}건)</div>`;
   html += matchedSites.length ? matchedSites.map(s=>`<div class="list-item" style="cursor:pointer" onclick="showTab('sites',document.querySelectorAll('.tab')[2]);openSite('${s.id}')">
     <div class="item-icon" style="background:#e8f5e9">🏗️</div>
-    <div style="flex:1;min-width:0"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}${s.entity?' · 🏢 '+s.entity:''}</div></div>
+    <div style="flex:1;min-width:0"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}${s.dept?' '+s.dept:''}${s.entity?' · 🏢 '+s.entity:''}</div></div>
     <span class="badge ${s.status==='진행중'?'b-ok':'b-done'}">${s.status}</span>
   </div>`).join('') : '<div class="empty">일치하는 현장 없음</div>';
   html += '</div>';
