@@ -853,6 +853,7 @@ function renderClients(){
   if(!filtered.length){el.innerHTML='<div class="empty">거래처 없음</div>';return;}
   el.innerHTML=filtered.map(c=>`<div class="list-item"><div class="item-icon" style="background:#e8f0fe;cursor:pointer" onclick="openClient('${c.id}')">🏢</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openClient('${c.id}')"><div class="item-name">${c.name}</div><div class="item-sub">${c.ceo?'대표 '+c.ceo:''}${c.account?' · 💳':''}</div></div><button class="btn-del" onclick="deleteClient('${c.id}')">🗑</button></div>`).join('');
 }
+window.renderClients = renderClients;
 
 // 현장
 window.addSite=async function(){
@@ -1058,6 +1059,7 @@ function renderSites(){
   if(!filtered.length){el.innerHTML='<div class="empty">현장 없음</div>';return;}
   el.innerHTML=filtered.map(s=>`<div class="list-item"><div class="item-icon" style="background:#e8f5e9;cursor:pointer" onclick="openSite('${s.id}')">🏗️</div><div style="flex:1;min-width:0;cursor:pointer" onclick="openSite('${s.id}')"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract}</div><div class="item-sub">${s.client}${s.dept?' '+s.dept:''}${s.entity?' · 🏢 '+s.entity:''}</div></div><span class="badge ${s.status==='진행중'?'b-ok':'b-done'}" style="margin-right:4px">${s.status}</span><button class="btn-del" onclick="deleteSite('${s.id}')">🗑</button></div>`).join('');
 }
+window.renderSites = renderSites;
 
 // 결제
 function renderPays(){ renderPayDashboard(); }
@@ -1531,6 +1533,7 @@ function renderSiteRecentLogs() {
   </div>`;
   }).join('');
 }
+window.renderSiteRecentLogs = renderSiteRecentLogs;
 
 // 일지 상세보기
 window.openLogDetail = function(id){
