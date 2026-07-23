@@ -439,7 +439,7 @@ window.acSearch=function(val,acId,inputId,type){
   if(!val||val.length<1){ac.style.display='none';return;}
   let items=type==='client'?clients.filter(c=>c.name&&c.name.includes(val)).slice(0,8):sites.filter(s=>((s.client||'')+(s.contract||'')).includes(val)).slice(0,8);
   if(!items.length){ac.style.display='none';return;}
-  ac.innerHTML=items.map(i=>{const label=type==='client'?i.name:`${i.client} - ${i.contract}`;return`<div class="ac-item" onclick="selAc('${label.replace(/'/g,"\\'")}','${acId}','${inputId}')">${label}</div>`;}).join('');
+  ac.innerHTML=items.map(i=>{const label=type==='client'?i.name:`${i.client}${i.dept?' '+i.dept:''} - ${i.contract}`;return`<div class="ac-item" onclick="selAc('${label.replace(/'/g,"\\'")}','${acId}','${inputId}')">${label}</div>`;}).join('');
   ac.style.display='block';
 }
 window.selAc=function(val,acId,inputId){document.getElementById(inputId).value=val;document.getElementById(acId).style.display='none';}
@@ -1344,7 +1344,7 @@ window.renderGlobalSearch = function(){
       return matchedSiteIds.has(l.siteId);
     }
     const site = sites.find(s=>s.id===l.siteId);
-    const searchable = [l.siteName||'', site?site.client:'', site?site.contract:'', l.workers||'', l.work||''].join(' ');
+    const searchable = [l.siteName||'', site?site.client:'', site?site.dept:'', site?site.contract:'', l.workers||'', l.work||''].join(' ');
     return searchable.includes(q);
   }).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 
@@ -1362,7 +1362,7 @@ window.renderGlobalSearch = function(){
   html += matchedLogs.length ? matchedLogs.map(l=>{
     const site = sites.find(s=>s.id===l.siteId);
     return `<div style="padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="openLogDetail('${l.id}')">
-    <div style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${site?site.client+' · ':''}${l.siteName||''}</div>
+    <div style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${l.siteName||''}</div>
     <div style="font-size:13px;font-weight:600;margin-top:1px">👷 ${l.workers||''}</div>
     <div style="font-size:12px;color:#555;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.work||''}</div>
   </div>`;
@@ -1507,7 +1507,7 @@ function renderSiteRecentLogs() {
   if(q){
     filtered = filtered.filter(l=>{
       const site = sites.find(s=>s.id===l.siteId);
-      const searchable = [l.siteName||'', site?site.client:'', site?site.contract:'', l.workers||'', l.work||''].join(' ');
+      const searchable = [l.siteName||'', site?site.client:'', site?site.dept:'', site?site.contract:'', l.workers||'', l.work||''].join(' ');
       return searchable.includes(q);
     });
   }
@@ -1519,7 +1519,7 @@ function renderSiteRecentLogs() {
     const site = sites.find(s=>s.id===l.siteId);
     return `<div style="padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="openLogDetail('${l.id}')">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${site?site.client+' · ':''}${l.siteName||''}</span>
+      <span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${l.siteName||''}</span>
       <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
         <button class="btn btn-sm btn-gray" style="padding:3px 8px;font-size:11px" onclick="openEditLog('${l.id}')">✏️ 수정</button>
         <button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button>
