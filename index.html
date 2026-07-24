@@ -1568,18 +1568,20 @@ window.submitQuickLog = async function() {
   const work = document.getElementById('ql-work').value.trim();
   if(!site||!workers||!work) return showToast('⚠️ 현장, 작업자, 작업내용 필수');
   const matched = sites.find(s=>(s.client+' - '+s.contract)===site||s.contract===site);
-  // 사진 여러 장 업로드
+  // 사진 여러 장 업로드 (동시 업로드로 속도 개선)
   let photos = [];
   const fileInput = document.getElementById('ql-file');
   const files = fileInput ? Array.from(fileInput.files||[]) : [];
   if(files.length){
     showToast(`📤 사진 ${files.length}장 업로드 중...`);
-    for(const file of files){
-      try{
-        const r = await uploadToCloud(file, null, null);
-        photos.push({url:r.secure_url, type:file.type, name:file.name});
-      }catch(e){ console.error('업로드 실패:', file.name, e); }
-    }
+    const results = await Promise.allSettled(files.map(file=>uploadToCloud(file, null, null)));
+    results.forEach((res, i)=>{
+      if(res.status==='fulfilled'){
+        photos.push({url:res.value.secure_url, type:files[i].type, name:files[i].name});
+      }else{
+        console.error('업로드 실패:', files[i].name, res.reason);
+      }
+    });
     if(photos.length < files.length) showToast(`⚠️ 일부 사진 업로드 실패 (${photos.length}/${files.length}장 성공)`);
   }
   await addDoc(collection(db,'logs'),{siteId:matched?matched.id:'',siteName:site,date:document.getElementById('ql-date').value,workers,startTime:document.getElementById('ql-start').value,endTime:document.getElementById('ql-end').value,work,note:document.getElementById('ql-note').value.trim(),photos,createdAt:Date.now()});
