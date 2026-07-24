@@ -239,7 +239,7 @@ textarea{resize:vertical;min-height:70px}
       <div class="card-title" style="margin:0">📋 일지 목록</div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-sm btn-gray" onclick="exportLogsCSV()">📊 엑셀로 내보내기</button>
-        <button class="btn btn-sm" style="background:#8e44ad;color:#fff" onclick="generatePhotoAlbum()">📸 사진첩 만들기</button>
+        <button class="btn btn-sm" style="background:#8e44ad;color:#fff" onclick="generatePhotoAlbum()">📸 사진첩 만들기 (PDF)</button>
       </div>
     </div>
     <div class="field"><input type="text" id="log-search" placeholder="🔍 거래처/현장명으로 검색 (예: 법무부, 보호관찰소)" oninput="renderSiteRecentLogs()" style="margin-bottom:0"></div>
@@ -463,24 +463,41 @@ window.previewFile=function(input,prefix){
 }
 
 // 여러 장 사진 미리보기 (선택 누적)
+// 선택한 파일들을 관리하는 저장소 (prefix별로 분리)
+window.multiFileStore = {};
+
 window.previewMultiFiles=function(input,prefix){
-  const files=Array.from(input.files||[]);if(!files.length)return;
+  const newFiles=Array.from(input.files||[]);if(!newFiles.length)return;
+  if(!window.multiFileStore[prefix]) window.multiFileStore[prefix]=[];
+  window.multiFileStore[prefix].push(...newFiles);
+  input.value=''; // 같은 파일 재선택 가능하도록 초기화
+  renderMultiFilePreview(prefix);
+}
+
+function renderMultiFilePreview(prefix){
   const preview=document.getElementById(prefix+'-file-preview');
+  const files=window.multiFileStore[prefix]||[];
   preview.innerHTML='';
-  files.forEach(file=>{
+  files.forEach((file,idx)=>{
     const wrap=document.createElement('div');
     wrap.style='position:relative;width:80px;height:80px;flex-shrink:0';
+    const removeBtn=`<button onclick="removeMultiFile('${prefix}',${idx})" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#e74c3c;color:#fff;border:2px solid #fff;font-size:13px;line-height:1;cursor:pointer;z-index:5">×</button>`;
     if(file.type.startsWith('image/')){
       const reader=new FileReader();
       reader.onload=e=>{
-        wrap.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid #eee">`;
+        wrap.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid #eee">${removeBtn}`;
       };
       reader.readAsDataURL(file);
     }else{
-      wrap.innerHTML=`<div style="width:100%;height:100%;background:#f0f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#2980b9;text-align:center;padding:4px">📄 ${file.name}</div>`;
+      wrap.innerHTML=`<div style="width:100%;height:100%;background:#f0f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#2980b9;text-align:center;padding:4px">📄 ${file.name}</div>${removeBtn}`;
     }
     preview.appendChild(wrap);
   });
+}
+
+window.removeMultiFile=function(prefix,idx){
+  window.multiFileStore[prefix].splice(idx,1);
+  renderMultiFilePreview(prefix);
 }
 
 // Cloudinary 업로드
@@ -492,11 +509,33 @@ async function uploadToCloud(file,progressEl,barEl){
   return new Promise((res,rej)=>{
     const xhr=new XMLHttpRequest();
     xhr.open('POST',`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`);
+    xhr.timeout = 30000;
     if(progressEl)progressEl.style.display='block';
     xhr.upload.onprogress=e=>{if(barEl)barEl.style.width=Math.round(e.loaded/e.total*100)+'%';};
-    xhr.onload=()=>{const r=JSON.parse(xhr.responseText);if(r.secure_url)res(r);else rej(r);};
-    xhr.onerror=rej;xhr.send(fd);
+    xhr.onload=()=>{
+      try{
+        const r=JSON.parse(xhr.responseText);
+        if(r.secure_url) res(r);
+        else rej(r);
+      }catch(err){
+        rej(new Error('업로드 응답 오류: '+xhr.status));
+      }
+    };
+    xhr.onerror=()=>rej(new Error('네트워크 오류'));
+    xhr.ontimeout=()=>rej(new Error('업로드 시간 초과'));
+    xhr.send(fd);
   });
+}
+
+// 여러 파일을 동시에 너무 많이 안 보내도록 배치로 나눠 업로드
+async function uploadBatch(files, batchSize=3){
+  const results = [];
+  for(let i=0;i<files.length;i+=batchSize){
+    const batch = files.slice(i, i+batchSize);
+    const batchResults = await Promise.allSettled(batch.map(f=>uploadToCloud(f, null, null)));
+    results.push(...batchResults);
+  }
+  return results;
 }
 
 // 품목 추가
@@ -1286,22 +1325,22 @@ window.generatePhotoAlbum = function(){
 <html lang="ko"><head><meta charset="UTF-8"><title>${albumTitle}</title>
 <style>
   body{font-family:-apple-system,'Malgun Gothic',sans-serif;background:#f5f5f5;margin:0;padding:20px}
-  .toolbar{max-width:900px;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;background:#1a1a2e;color:#fff;padding:14px 20px;border-radius:10px}
+  .toolbar{max-width:700px;margin:0 auto 16px;display:flex;justify-content:space-between;align-items:center;background:#1a1a2e;color:#fff;padding:14px 20px;border-radius:10px}
   .toolbar h1{font-size:16px;margin:0}
   .toolbar button{background:#8e44ad;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
-  .album-wrap{max-width:900px;margin:0 auto}
-  .album-section{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);page-break-inside:avoid}
-  .album-header{margin-bottom:14px;border-bottom:2px solid #1a1a2e;padding-bottom:10px}
-  .album-site{font-size:17px;font-weight:800;color:#1a1a2e}
-  .album-meta{font-size:12px;color:#888;margin-top:3px}
-  .album-work{font-size:13px;color:#333;margin-top:6px}
-  .album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .album-photo{aspect-ratio:1;overflow:hidden;border-radius:8px;border:1px solid #eee}
-  .album-photo img{width:100%;height:100%;object-fit:cover}
+  .album-wrap{max-width:700px;margin:0 auto}
+  .album-section{background:#fff;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,0.08);page-break-inside:avoid}
+  .album-header{margin-bottom:18px;border-bottom:3px solid #1a1a2e;padding-bottom:14px}
+  .album-site{font-size:28px;font-weight:900;color:#1a1a2e;line-height:1.3}
+  .album-meta{font-size:13px;color:#888;margin-top:6px;font-weight:600}
+  .album-work{font-size:15px;color:#333;margin-top:10px;line-height:1.5}
+  .album-grid{display:flex;flex-direction:column;gap:14px}
+  .album-photo{width:100%;border-radius:10px;overflow:hidden;border:1px solid #eee}
+  .album-photo img{width:100%;height:auto;display:block}
   @media print{
     body{background:#fff;padding:0}
     .toolbar{display:none}
-    .album-section{box-shadow:none;border:1px solid #ddd}
+    .album-section{box-shadow:none;border:1px solid #ddd;page-break-after:always}
   }
 </style></head>
 <body>
@@ -1571,10 +1610,10 @@ window.submitQuickLog = async function() {
   // 사진 여러 장 업로드 (동시 업로드로 속도 개선)
   let photos = [];
   const fileInput = document.getElementById('ql-file');
-  const files = fileInput ? Array.from(fileInput.files||[]) : [];
+  const files = window.multiFileStore['ql'] || [];
   if(files.length){
     showToast(`📤 사진 ${files.length}장 업로드 중...`);
-    const results = await Promise.allSettled(files.map(file=>uploadToCloud(file, null, null)));
+    const results = await uploadBatch(files, 3);
     results.forEach((res, i)=>{
       if(res.status==='fulfilled'){
         photos.push({url:res.value.secure_url, type:files[i].type, name:files[i].name});
@@ -1589,6 +1628,7 @@ window.submitQuickLog = async function() {
   document.getElementById('ql-work').value='';
   document.getElementById('ql-note').value='';
   document.getElementById('ql-file-preview').innerHTML='';
+  window.multiFileStore['ql']=[];
   if(fileInput) fileInput.value='';
   showToast('✅ 일지 등록 완료!');
   renderSiteRecentLogs();
