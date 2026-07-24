@@ -1166,8 +1166,8 @@ function renderTrash(){
   if(cEl){
     cEl.innerHTML = trashClients.length ? trashClients.map(c=>`<div class="list-item">
       <div class="item-icon" style="background:#f5f5f5">🏢</div>
-      <div style="flex:1;min-width:0"><div class="item-name">${c.name||''}</div><div class="item-sub">삭제됨 · ${c.deletedAt?new Date(c.deletedAt).toLocaleDateString('ko-KR'):''}</div></div>
-      <button class="btn btn-sm btn-field" onclick="restoreItem('clients','${c.id}')">↩️ 복원</button>
+      <div style="flex:1;min-width:0"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name||''}</div><div class="item-sub">삭제됨 · ${c.deletedAt?new Date(c.deletedAt).toLocaleDateString('ko-KR'):''}</div></div>
+      <button class="btn btn-sm" style="background:#27ae60;color:#fff;width:auto;flex-shrink:0;white-space:nowrap;margin:0" onclick="restoreItem('clients','${c.id}')">↩️ 복원</button>
       <button class="btn-del" onclick="permanentDeleteItem('clients','${c.id}')">🗑</button>
     </div>`).join('') : '<div class="empty">없음</div>';
   }
@@ -1175,8 +1175,8 @@ function renderTrash(){
   if(sEl){
     sEl.innerHTML = trashSites.length ? trashSites.map(s=>`<div class="list-item">
       <div class="item-icon" style="background:#f5f5f5">🏗️</div>
-      <div style="flex:1;min-width:0"><div class="item-name">${s.contract||''}</div><div class="item-sub">${s.client||''} · 삭제됨 · ${s.deletedAt?new Date(s.deletedAt).toLocaleDateString('ko-KR'):''}</div></div>
-      <button class="btn btn-sm btn-field" onclick="restoreItem('sites','${s.id}')">↩️ 복원</button>
+      <div style="flex:1;min-width:0"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contract||''}</div><div class="item-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.client||''} · 삭제됨 · ${s.deletedAt?new Date(s.deletedAt).toLocaleDateString('ko-KR'):''}</div></div>
+      <button class="btn btn-sm" style="background:#27ae60;color:#fff;width:auto;flex-shrink:0;white-space:nowrap;margin:0" onclick="restoreItem('sites','${s.id}')">↩️ 복원</button>
       <button class="btn-del" onclick="permanentDeleteItem('sites','${s.id}')">🗑</button>
     </div>`).join('') : '<div class="empty">없음</div>';
   }
@@ -1184,8 +1184,8 @@ function renderTrash(){
   if(lEl){
     lEl.innerHTML = trashLogs.length ? trashLogs.sort((a,b)=>(b.deletedAt||0)-(a.deletedAt||0)).map(l=>`<div class="list-item">
       <div class="item-icon" style="background:#f5f5f5">📋</div>
-      <div style="flex:1;min-width:0"><div class="item-name">${l.siteName||''}</div><div class="item-sub">${l.date||''} · 👷 ${l.workers||''} · 삭제됨</div></div>
-      <button class="btn btn-sm btn-field" onclick="restoreItem('logs','${l.id}')">↩️ 복원</button>
+      <div style="flex:1;min-width:0"><div class="item-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.siteName||''}</div><div class="item-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.date||''} · 👷 ${l.workers||''} · 삭제됨</div></div>
+      <button class="btn btn-sm" style="background:#27ae60;color:#fff;width:auto;flex-shrink:0;white-space:nowrap;margin:0" onclick="restoreItem('logs','${l.id}')">↩️ 복원</button>
       <button class="btn-del" onclick="permanentDeleteItem('logs','${l.id}')">🗑</button>
     </div>`).join('') : '<div class="empty">없음</div>';
   }
