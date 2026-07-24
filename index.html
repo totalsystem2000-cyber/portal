@@ -104,6 +104,7 @@ textarea{resize:vertical;min-height:70px}
   <button class="tab" onclick="showTab('sites',this)">🏗️ 현장</button>
   <button class="tab" onclick="showTab('logs',this)">📋 일지</button>
   <button class="tab" onclick="showTab('search',this)">🔍 조회</button>
+  <button class="tab" onclick="showTab('trash',this)">🗑️ 휴지통</button>
 </div>
 
 <!-- 대시보드 -->
@@ -243,7 +244,13 @@ textarea{resize:vertical;min-height:70px}
       </div>
     </div>
     <div class="field"><input type="text" id="log-search" placeholder="🔍 거래처/현장명으로 검색 (예: 법무부, 보호관찰소)" oninput="renderSiteRecentLogs()" style="margin-bottom:0"></div>
-    <div id="site-recent-logs" style="margin-top:14px"><div class="loading">로딩 중...</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#555;cursor:pointer">
+        <input type="checkbox" id="log-select-all" onclick="toggleAllLogSelect(this)" style="width:16px;height:16px">전체선택
+      </label>
+      <span id="log-select-count" style="font-size:12px;color:#8e44ad;font-weight:700"></span>
+    </div>
+    <div id="site-recent-logs" style="margin-top:10px"><div class="loading">로딩 중...</div></div>
   </div>
 </div>
 
@@ -265,6 +272,25 @@ textarea{resize:vertical;min-height:70px}
     </div>
   </div>
   <div id="global-search-results"><div class="empty">검색어를 입력하거나 필터를 선택하세요</div></div>
+</div>
+
+<!-- 휴지통 탭 -->
+<div id="trash" class="page">
+  <div class="card" style="padding:12px 14px">
+    <div style="font-size:12px;color:#888">삭제한 항목은 여기서 복원하거나 완전히 지울 수 있어요</div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏢 거래처</div>
+    <div id="trash-clients"><div class="empty">없음</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏗️ 현장</div>
+    <div id="trash-sites"><div class="empty">없음</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 일지</div>
+    <div id="trash-logs"><div class="empty">없음</div></div>
+  </div>
 </div>
 
 <!-- 엑셀 업로드 모달 -->
@@ -331,6 +357,16 @@ textarea{resize:vertical;min-height:70px}
     </div>
     <div class="field"><label>작업내용 *</label><textarea id="edit-log-work"></textarea></div>
     <div class="field"><label>특이사항</label><input type="text" id="edit-log-note"></div>
+    <div class="field">
+      <label>기존 사진</label>
+      <div id="edit-log-existing-photos" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+      <label>사진 추가 (선택)</label>
+      <div class="upload-area" onclick="document.getElementById('edit-log-file').click()">
+        📷 클릭해서 사진 선택 (여러 장 가능)
+        <input type="file" id="edit-log-file" accept="image/*,.pdf" multiple style="display:none" onchange="previewMultiFiles(this,'edit-log')">
+      </div>
+      <div id="edit-log-file-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>
+    </div>
     <button class="btn btn-primary" onclick="saveEditLog()">💾 저장</button>
   </div>
 </div>
@@ -389,15 +425,16 @@ window.sendNotifyEmail = async function(params, target='field'){
 }
 
 let clients=[], sites=[], logs=[], pays=[], docs=[];
+let trashClients=[], trashSites=[], trashLogs=[];
 let curSiteId=null;
 
 const CONTRACT_DOCS=['계약서','견적서','사업자등록증','계약보증금 지급각서','보안각서','청렴서약서','수의계약사유서','조세포탈서약서(계약이전 날짜로)','수의계약체결여부확인서(계약이전 날짜로)','공정표','도면','법인인감증명서','사용인감계','법인등기부등본','수입인지(천만원 이상 2만원)','<예외> 건설업등록수첩','<예외> 건설업등록증','안전보건작업계획서','산업재해율확인서','비교견적서','승낙사항','퇴직자영입확인서'];
 const CLAIM_DOCS=['착공계','현장대리인계','현장대리인 재직증명서','<예외> 직원분 자격증','준공계','준공검사조서','준공검사원','대금청구서','통장사본','국세 완납증명서','지방세 완납증명서','4대보험 완납증명서','작업사진','하자이행증권','<예외> 하자보증금지급각서'];
 
 // 실시간 구독
-onSnapshot(collection(db,'clients'),snap=>{clients=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));renderClients();renderDash();});
-onSnapshot(collection(db,'sites'),snap=>{sites=snap.docs.map(d=>({id:d.id,...d.data()}));renderSites();renderDash();});
-onSnapshot(collection(db,'logs'),snap=>{logs=snap.docs.map(d=>({id:d.id,...d.data()}));renderRecentLogs();renderSiteRecentLogs();renderDash();});
+onSnapshot(collection(db,'clients'),snap=>{const all=snap.docs.map(d=>({id:d.id,...d.data()}));clients=all.filter(c=>!c.deleted).sort((a,b)=>(a.name||'').localeCompare(b.name||''));trashClients=all.filter(c=>c.deleted);renderClients();renderDash();renderTrash();});
+onSnapshot(collection(db,'sites'),snap=>{const all=snap.docs.map(d=>({id:d.id,...d.data()}));sites=all.filter(s=>!s.deleted);trashSites=all.filter(s=>s.deleted);renderSites();renderDash();renderTrash();});
+onSnapshot(collection(db,'logs'),snap=>{const all=snap.docs.map(d=>({id:d.id,...d.data()}));logs=all.filter(l=>!l.deleted);trashLogs=all.filter(l=>l.deleted);renderRecentLogs();renderSiteRecentLogs();renderDash();renderTrash();});
 onSnapshot(collection(db,'pays'),snap=>{pays=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderPays();renderDash();});
 onSnapshot(collection(db,'docs'),snap=>{docs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));renderOfficeDocs();renderFieldDocs();renderFieldMyUploads();renderDash();});
 
@@ -413,6 +450,7 @@ window.showTab=function(id,el){
   document.getElementById(id).classList.add('on');el.classList.add('on');
   if(id==='search')renderGlobalSearch();
   if(id==='logs')renderSiteRecentLogs();
+  if(id==='trash')renderTrash();
 }
 window.showView=function(s,h){document.getElementById(s).style.display='';document.getElementById(h).style.display='none';}
 window.showFieldTab=function(tab){
@@ -883,7 +921,11 @@ window.importExcelPaste=async function(){
   }
   document.getElementById('excel-paste').value='';closeModal('excel-modal');showToast(`✅ ${count}개 등록`);
 }
-window.deleteClient=async function(id){if(!confirm('삭제?'))return;await deleteDoc(doc(db,'clients',id));showToast('🗑️');}
+window.deleteClient=async function(id){
+  if(!confirm('이 거래처를 삭제할까요?\n(휴지통에서 복원할 수 있어요)'))return;
+  try{ await updateDoc(doc(db,'clients',id), {deleted:true, deletedAt:Date.now()}); showToast('🗑️ 삭제 완료 (휴지통으로 이동)'); }
+  catch(e){ showToast('⚠️ 삭제 실패 — Firebase 규칙 확인'); }
+}
 window.openClient=function(id){
   const c=clients.find(c=>c.id===id);if(!c)return;
   const related=sites.filter(s=>s.client===c.name);
@@ -1001,8 +1043,9 @@ window.saveSiteInfo = async function(siteId){
 }
 
 window.deleteSite=async function(id){
-  if(!confirm('삭제?'))return;
-  await deleteDoc(doc(db,'sites',id));showToast('🗑️');
+  if(!confirm('이 현장을 삭제할까요?\n(휴지통에서 복원할 수 있어요)'))return;
+  try{ await updateDoc(doc(db,'sites',id), {deleted:true, deletedAt:Date.now()}); showToast('🗑️ 삭제 완료 (휴지통으로 이동)'); }
+  catch(e){ showToast('⚠️ 삭제 실패 — Firebase 규칙 확인'); }
 }
 window.openSite=function(id){
   curSiteId=id;const s=sites.find(s=>s.id===id);if(!s)return;
@@ -1111,7 +1154,59 @@ window.addLog=async function(){
   document.getElementById('l-workers').value='';document.getElementById('l-work').value='';document.getElementById('l-note').value='';
   showToast('✅ 일지 등록');
 }
-window.deleteLog=async function(id){await deleteDoc(doc(db,'logs',id));showToast('🗑️');}
+window.deleteLog=async function(id){
+  if(!confirm('이 일지를 삭제할까요?\n(휴지통에서 복원할 수 있어요)'))return;
+  try{ await updateDoc(doc(db,'logs',id), {deleted:true, deletedAt:Date.now()}); showToast('🗑️ 삭제 완료 (휴지통으로 이동)'); }
+  catch(e){ showToast('⚠️ 삭제 실패 — Firebase 규칙 확인'); }
+}
+
+// 휴지통
+function renderTrash(){
+  const cEl = document.getElementById('trash-clients');
+  if(cEl){
+    cEl.innerHTML = trashClients.length ? trashClients.map(c=>`<div class="list-item">
+      <div class="item-icon" style="background:#f5f5f5">🏢</div>
+      <div style="flex:1;min-width:0"><div class="item-name">${c.name||''}</div><div class="item-sub">삭제됨 · ${c.deletedAt?new Date(c.deletedAt).toLocaleDateString('ko-KR'):''}</div></div>
+      <button class="btn btn-sm btn-field" onclick="restoreItem('clients','${c.id}')">↩️ 복원</button>
+      <button class="btn-del" onclick="permanentDeleteItem('clients','${c.id}')">🗑</button>
+    </div>`).join('') : '<div class="empty">없음</div>';
+  }
+  const sEl = document.getElementById('trash-sites');
+  if(sEl){
+    sEl.innerHTML = trashSites.length ? trashSites.map(s=>`<div class="list-item">
+      <div class="item-icon" style="background:#f5f5f5">🏗️</div>
+      <div style="flex:1;min-width:0"><div class="item-name">${s.contract||''}</div><div class="item-sub">${s.client||''} · 삭제됨 · ${s.deletedAt?new Date(s.deletedAt).toLocaleDateString('ko-KR'):''}</div></div>
+      <button class="btn btn-sm btn-field" onclick="restoreItem('sites','${s.id}')">↩️ 복원</button>
+      <button class="btn-del" onclick="permanentDeleteItem('sites','${s.id}')">🗑</button>
+    </div>`).join('') : '<div class="empty">없음</div>';
+  }
+  const lEl = document.getElementById('trash-logs');
+  if(lEl){
+    lEl.innerHTML = trashLogs.length ? trashLogs.sort((a,b)=>(b.deletedAt||0)-(a.deletedAt||0)).map(l=>`<div class="list-item">
+      <div class="item-icon" style="background:#f5f5f5">📋</div>
+      <div style="flex:1;min-width:0"><div class="item-name">${l.siteName||''}</div><div class="item-sub">${l.date||''} · 👷 ${l.workers||''} · 삭제됨</div></div>
+      <button class="btn btn-sm btn-field" onclick="restoreItem('logs','${l.id}')">↩️ 복원</button>
+      <button class="btn-del" onclick="permanentDeleteItem('logs','${l.id}')">🗑</button>
+    </div>`).join('') : '<div class="empty">없음</div>';
+  }
+}
+window.renderTrash = renderTrash;
+
+window.restoreItem = async function(collectionName, id){
+  try{
+    await updateDoc(doc(db,collectionName,id), {deleted:false});
+    showToast('✅ 복원 완료');
+  }catch(e){ showToast('⚠️ 복원 실패 — Firebase 규칙 확인'); }
+}
+
+window.permanentDeleteItem = async function(collectionName, id){
+  if(!confirm('⚠️ 완전히 삭제됩니다!\n\n이 작업은 되돌릴 수 없으며, 휴지통에서도 복원할 수 없습니다.\n\n정말 삭제하시겠습니까?'))return;
+  try{
+    await deleteDoc(doc(db,collectionName,id));
+    showToast('🗑️ 영구 삭제 완료');
+  }catch(e){ showToast('⚠️ 삭제 실패 — Firebase 규칙 확인'); }
+}
+
 function renderSites(){
   const q=(document.getElementById('s-search')||{}).value||'';
   const filtered=q?sites.filter(s=>((s.client||'')+(s.contract||'')).includes(q)):sites;
@@ -1277,8 +1372,16 @@ window.exportPayCSV = function(){
   showToast('📊 CSV 다운로드 완료');
 }
 
+// 체크박스로 선택된 게 있으면 그것만, 없으면 현재 검색결과 전체
+function getExportTargetLogs(){
+  if(window.selectedLogIds && window.selectedLogIds.size > 0){
+    return logs.filter(l=>window.selectedLogIds.has(l.id));
+  }
+  return getFilteredLogsList();
+}
+
 window.exportLogsCSV = function(){
-  const filtered = getFilteredLogsList();
+  const filtered = getExportTargetLogs();
   const rows = [['날짜','현장명','작업자','시작시간','종료시간','작업내용','특이사항','사진수']];
   [...filtered].sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(l=>{
     const siteName = l.siteName || (sites.find(s=>s.id===l.siteId)||{}).contract || '';
@@ -1297,7 +1400,7 @@ window.exportLogsCSV = function(){
 
 // 사진첩 만들기 (인쇄/PDF 저장용 HTML 페이지)
 window.generatePhotoAlbum = function(){
-  const filtered = getFilteredLogsList();
+  const filtered = getExportTargetLogs();
   const withPhotos = filtered.filter(l=>(l.photos&&l.photos.length)||l.fileUrl);
   if(!withPhotos.length){ showToast('⚠️ 사진이 첨부된 일지가 없습니다'); return; }
 
@@ -1569,6 +1672,8 @@ window.saveEditDoc = async function() {
   } catch(e) { showToast('⚠️ 저장 실패 — Firebase 규칙 확인'); }
 }
 
+window.editLogExistingPhotos = []; // 현재 수정 중인 일지의 기존 사진 (삭제 가능)
+
 window.openEditLog = function(id) {
   const l = logs.find(l=>l.id===id); if(!l) return;
   document.getElementById('edit-log-id').value = id;
@@ -1578,7 +1683,30 @@ window.openEditLog = function(id) {
   document.getElementById('edit-log-end').value = l.endTime||'17:00';
   document.getElementById('edit-log-work').value = l.work||'';
   document.getElementById('edit-log-note').value = l.note||'';
+  // 기존 사진 로드 (신형 photos 배열 or 구형 fileUrl 단일)
+  window.editLogExistingPhotos = (l.photos && l.photos.length) ? [...l.photos] : (l.fileUrl ? [{url:l.fileUrl, type:l.fileType, name:l.fileName}] : []);
+  renderEditLogExistingPhotos();
+  window.multiFileStore['edit-log'] = [];
+  document.getElementById('edit-log-file-preview').innerHTML = '';
   openModal('edit-log-modal');
+}
+
+function renderEditLogExistingPhotos(){
+  const el = document.getElementById('edit-log-existing-photos');
+  const photos = window.editLogExistingPhotos;
+  if(!photos.length){ el.innerHTML = '<div style="font-size:12px;color:#bbb">없음</div>'; return; }
+  el.innerHTML = photos.map((p,idx)=>{
+    const isImg = p.type && p.type.startsWith('image/');
+    return `<div style="position:relative;width:80px;height:80px;flex-shrink:0">
+      ${isImg?`<img src="${p.url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;border:1px solid #eee">`:`<div style="width:100%;height:100%;background:#f0f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#2980b9;text-align:center;padding:4px">📄 ${p.name||'파일'}</div>`}
+      <button onclick="removeEditLogExistingPhoto(${idx})" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#e74c3c;color:#fff;border:2px solid #fff;font-size:13px;line-height:1;cursor:pointer">×</button>
+    </div>`;
+  }).join('');
+}
+
+window.removeEditLogExistingPhoto = function(idx){
+  window.editLogExistingPhotos.splice(idx,1);
+  renderEditLogExistingPhotos();
 }
 
 window.saveEditLog = async function() {
@@ -1586,6 +1714,22 @@ window.saveEditLog = async function() {
   const workers = document.getElementById('edit-log-workers').value.trim();
   const work = document.getElementById('edit-log-work').value.trim();
   if(!workers||!work) return showToast('⚠️ 작업자와 작업내용 필수');
+  // 새로 추가한 사진 업로드
+  const newFiles = window.multiFileStore['edit-log'] || [];
+  let newPhotos = [];
+  if(newFiles.length){
+    showToast(`📤 사진 ${newFiles.length}장 업로드 중...`);
+    const results = await uploadBatch(newFiles, 3);
+    results.forEach((res, i)=>{
+      if(res.status==='fulfilled'){
+        newPhotos.push({url:res.value.secure_url, type:newFiles[i].type, name:newFiles[i].name});
+      }else{
+        console.error('업로드 실패:', newFiles[i].name, res.reason);
+      }
+    });
+    if(newPhotos.length < newFiles.length) showToast(`⚠️ 일부 사진 업로드 실패 (${newPhotos.length}/${newFiles.length}장 성공)`);
+  }
+  const finalPhotos = [...window.editLogExistingPhotos, ...newPhotos];
   try {
     await updateDoc(doc(db,'logs',id), {
       date: document.getElementById('edit-log-date').value,
@@ -1593,7 +1737,9 @@ window.saveEditLog = async function() {
       startTime: document.getElementById('edit-log-start').value,
       endTime: document.getElementById('edit-log-end').value,
       work,
-      note: document.getElementById('edit-log-note').value.trim()
+      note: document.getElementById('edit-log-note').value.trim(),
+      photos: finalPhotos,
+      fileUrl: null, fileType: null, fileName: null
     });
     showToast('✅ 일지 수정 완료');
     closeModal('edit-log-modal');
@@ -1648,31 +1794,67 @@ function getFilteredLogsList(){
   return filtered.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 }
 
+// 일지 체크박스 선택 관리
+window.selectedLogIds = window.selectedLogIds || new Set();
+
 function renderSiteRecentLogs() {
   const el = document.getElementById('site-recent-logs'); if(!el) return;
   const q = ((document.getElementById('log-search')||{}).value||'').trim();
   const filtered = getFilteredLogsList();
   const showCount = q ? filtered.length : Math.min(filtered.length, 8);
   const recent = filtered.slice(0, showCount);
+  updateLogSelectCount();
   if(!recent.length){el.innerHTML='<div class="empty">일지 없음</div>';return;}
   el.innerHTML = recent.map(l=>{
     const site = sites.find(s=>s.id===l.siteId);
     const photoCount = (l.photos&&l.photos.length) ? l.photos.length : (l.fileUrl?1:0);
-    return `<div style="padding:9px 0;border-bottom:1px solid #f0f0f0;cursor:pointer" onclick="openLogDetail('${l.id}')">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${l.siteName||''}</span>
-      <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
-        <button class="btn btn-sm btn-gray" style="padding:3px 8px;font-size:11px" onclick="openEditLog('${l.id}')">✏️ 수정</button>
-        <button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button>
+    const checked = window.selectedLogIds.has(l.id);
+    return `<div style="padding:9px 0;border-bottom:1px solid #f0f0f0;display:flex;gap:8px">
+    <input type="checkbox" ${checked?'checked':''} onchange="toggleLogSelect('${l.id}',this.checked)" style="width:16px;height:16px;margin-top:3px;flex-shrink:0">
+    <div style="flex:1;min-width:0;cursor:pointer" onclick="openLogDetail('${l.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:#999">${l.date||''} ${l.startTime?l.startTime+'~'+l.endTime:''} · ${l.siteName||''}</span>
+        <div style="display:flex;gap:4px" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-gray" style="padding:3px 8px;font-size:11px" onclick="openEditLog('${l.id}')">✏️ 수정</button>
+          <button class="btn-del" onclick="deleteLog('${l.id}')">🗑</button>
+        </div>
       </div>
+      <div style="font-size:13px;font-weight:600;margin-top:1px">👷 ${l.workers||''}</div>
+      <div style="font-size:12px;color:#555;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.work||''}</div>
+      ${photoCount?`<div style="font-size:11px;color:#2980b9;margin-top:3px">📎 사진 ${photoCount}장</div>`:''}
     </div>
-    <div style="font-size:13px;font-weight:600;margin-top:1px">👷 ${l.workers||''}</div>
-    <div style="font-size:12px;color:#555;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.work||''}</div>
-    ${photoCount?`<div style="font-size:11px;color:#2980b9;margin-top:3px">📎 사진 ${photoCount}장</div>`:''}
   </div>`;
   }).join('');
 }
 window.renderSiteRecentLogs = renderSiteRecentLogs;
+
+window.toggleLogSelect = function(id, checked){
+  if(checked) window.selectedLogIds.add(id);
+  else window.selectedLogIds.delete(id);
+  updateLogSelectCount();
+  const allBox = document.getElementById('log-select-all');
+  if(allBox && !checked) allBox.checked = false;
+}
+
+window.toggleAllLogSelect = function(checkboxEl){
+  const filtered = getFilteredLogsList();
+  const q = ((document.getElementById('log-search')||{}).value||'').trim();
+  const showCount = q ? filtered.length : Math.min(filtered.length, 8);
+  const visible = filtered.slice(0, showCount);
+  if(checkboxEl.checked){
+    visible.forEach(l=>window.selectedLogIds.add(l.id));
+  }else{
+    visible.forEach(l=>window.selectedLogIds.delete(l.id));
+  }
+  renderSiteRecentLogs();
+}
+
+function updateLogSelectCount(){
+  const el = document.getElementById('log-select-count');
+  if(!el) return;
+  const n = window.selectedLogIds.size;
+  el.textContent = n>0 ? `${n}개 선택됨` : '';
+}
 
 // 일지 상세보기
 window.openLogDetail = function(id){
